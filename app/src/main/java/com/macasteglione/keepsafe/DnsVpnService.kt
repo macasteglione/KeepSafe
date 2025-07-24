@@ -4,12 +4,16 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.edit
+import com.macasteglione.keepsafe.VpnStateManager.getVpnInterfaceAddress
 
 class DnsVpnService : VpnService() {
     private var vpnInterface: ParcelFileDescriptor? = null
@@ -39,13 +43,13 @@ class DnsVpnService : VpnService() {
         vpnInterface = builder.establish()
 
         if (vpnInterface == null) {
-            Log.e(
-                "DnsVpnService",
-                "Error: establish() devolvió null. ¿Permiso VPN aceptado?"
-            )
             stopSelf()
             return START_NOT_STICKY
         }
+
+        val vpnAddress = getVpnInterfaceAddress() ?: "0.0.0.0"
+        val prefs = getSharedPreferences("vpn_prefs", Context.MODE_PRIVATE)
+        prefs.edit { putString("vpn_address", vpnAddress) }
 
         return START_STICKY
     }
@@ -62,14 +66,36 @@ class DnsVpnService : VpnService() {
     private fun buildNotification(): Notification {
         val channelId = "vpn_channel"
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "VPN", NotificationManager.IMPORTANCE_LOW)
+            val channel = NotificationChannel(
+                channelId,
+                "VPN",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Notificaciones del servicio VPN"
+            }
             manager.createNotificationChannel(channel)
         }
+
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         return NotificationCompat.Builder(this, channelId)
-            .setContentTitle("KeepSafe VPN activo")
+            .setContentTitle("KeepSafe activo")
             .setContentText("Protegiendo tu DNS con OpenDNS")
-            .setSmallIcon(android.R.drawable.stat_sys_warning)
+            .setSmallIcon(R.drawable.ic_vpn)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(false)
+            .setOngoing(true)
             .build()
     }
 }

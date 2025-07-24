@@ -60,4 +60,6 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.tink.android)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.core.splashscreen)
 }
