@@ -31,7 +31,7 @@ jobs:
         run: ./gradlew assembleRelease
 
       - name: Upload Production APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: KeepSafe-Prod.apk
           path: app/build/outputs/apk/release/app-release.apk
