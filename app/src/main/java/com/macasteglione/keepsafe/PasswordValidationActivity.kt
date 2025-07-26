@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.macasteglione.keepsafe.ui.theme.KeepSafeTheme
 
@@ -36,13 +37,23 @@ class PasswordValidationActivity : ComponentActivity() {
 
         setContent {
             KeepSafeTheme {
+                val context = LocalContext.current
+
                 PasswordValidationScreen(
                     onPasswordCorrect = {
-                        Toast.makeText(this, "KeepSafe desactivado", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.keepsafe_disabled),
+                            Toast.LENGTH_SHORT
+                        ).show()
                         finish()
                     },
                     onPasswordWrong = {
-                        Toast.makeText(this, "Contraseña incorrecta", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.incorrect_password),
+                            Toast.LENGTH_LONG
+                        ).show()
                         reactivateDeviceAdmin()
                     }
                 )
@@ -53,17 +64,16 @@ class PasswordValidationActivity : ComponentActivity() {
     private fun reactivateDeviceAdmin() {
         val dpm = getSystemService(DEVICE_POLICY_SERVICE) as DevicePolicyManager
         val comp = ComponentName(this, MyDeviceAdminReceiver::class.java)
+
         if (!dpm.isAdminActive(comp)) {
             val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
                 putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, comp)
+                putExtra(
+                    DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                    getString(R.string.app_admin_privileges)
+                )
             }
             startActivity(intent)
-        } else {
-            Toast.makeText(
-                this,
-                "Administrador de dispositivo activo. No se puede desinstalar.",
-                Toast.LENGTH_SHORT
-            ).show()
         }
     }
 }
@@ -85,7 +95,7 @@ fun PasswordValidationScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Introduce la contraseña para desactivar KeepSafe")
+        Text(stringResource(R.string.enter_password_for_uninstall), color = Color.White)
         Spacer(Modifier.height(16.dp))
 
         OutlinedTextField(
@@ -94,12 +104,15 @@ fun PasswordValidationScreen(
                 entered = it
                 wrongPassword = false
             },
-            label = { Text("Contraseña") }
+            label = { Text(stringResource(R.string.password)) }
         )
 
         if (wrongPassword) {
             Spacer(Modifier.height(8.dp))
-            Text("Contraseña incorrecta", color = MaterialTheme.colorScheme.error)
+            Text(
+                stringResource(R.string.incorrect_password),
+                color = MaterialTheme.colorScheme.error
+            )
         }
 
         Spacer(Modifier.height(16.dp))
@@ -113,7 +126,7 @@ fun PasswordValidationScreen(
                 onPasswordWrong()
             }
         }) {
-            Text("Confirmar")
+            Text(stringResource(R.string.confirm))
         }
     }
 }

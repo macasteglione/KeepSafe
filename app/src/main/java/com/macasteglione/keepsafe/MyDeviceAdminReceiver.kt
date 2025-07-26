@@ -7,7 +7,8 @@ import android.widget.Toast
 
 class MyDeviceAdminReceiver : DeviceAdminReceiver() {
     override fun onEnabled(context: Context, intent: Intent) {
-        Toast.makeText(context, "KeepSafe activado como administrador", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.active_as_admin), Toast.LENGTH_SHORT)
+            .show()
     }
 
     override fun onDisabled(context: Context, intent: Intent) {
