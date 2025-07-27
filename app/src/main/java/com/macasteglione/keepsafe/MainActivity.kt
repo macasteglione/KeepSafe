@@ -32,11 +32,14 @@ import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -73,33 +77,32 @@ class MainActivity : ComponentActivity() {
         setContent {
             KeepSafeTheme {
                 val context = LocalContext.current
+                val notAvailableText = stringResource(R.string.vpn_address_not_available)
+
                 var showSetPassword by remember {
                     mutableStateOf(!PasswordManager.isPasswordSet(context))
                 }
                 var enteredPassword by remember { mutableStateOf("") }
                 var showPasswordPrompt by remember { mutableStateOf(false) }
 
-                val dnsAddress = remember { mutableStateOf("No disponible") }
+                val dnsAddress = remember { mutableStateOf(notAvailableText) }
 
                 LaunchedEffect(vpnRunningState.value) {
                     if (vpnRunningState.value) {
                         kotlinx.coroutines.delay(500)
                         val prefs = context.getSharedPreferences("vpn_prefs", Context.MODE_PRIVATE)
                         dnsAddress.value =
-                            prefs.getString("vpn_address", "No disponible") ?: "No disponible"
+                            prefs.getString("vpn_address", notAvailableText) ?: notAvailableText
                     } else {
-                        dnsAddress.value = "No disponible"
+                        dnsAddress.value = notAvailableText
                     }
                 }
 
                 val dnsPingMs = remember { mutableIntStateOf(0) }
 
                 LaunchedEffect(Unit) {
-                    withContext(Dispatchers.IO) {
-                        val ms = getPingTime("1.1.1.1")
-                        withContext(Dispatchers.Main) {
-                            dnsPingMs.value = ms
-                        }
+                    dnsPingMs.intValue = withContext(Dispatchers.IO) {
+                        getPingTime("1.1.1.1")
                     }
                 }
 
@@ -117,7 +120,7 @@ class MainActivity : ComponentActivity() {
                     onSetPassword = { pass ->
                         PasswordManager.savePassword(context, pass)
                         showSetPassword = false
-                        enableDeviceAdmin()
+                        enableDeviceAdmin(context)
                     },
                     showPasswordPrompt = showPasswordPrompt,
                     onValidatePassword = { pass ->
@@ -139,7 +142,6 @@ class MainActivity : ComponentActivity() {
                         enteredPassword = ""
                         showPasswordPrompt = false
                     },
-                    dnsName = "OpenDNS",
                     dnsAddress = dnsAddress.value,
                     dnsPingMs = dnsPingMs.intValue
                 )
@@ -147,16 +149,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun enableDeviceAdmin() {
-        val component = ComponentName(this, MyDeviceAdminReceiver::class.java)
+    private fun enableDeviceAdmin(context: Context) {
+        val component = ComponentName(context, MyDeviceAdminReceiver::class.java)
         val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
             putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, component)
             putExtra(
                 DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                "KeepSafe necesita permisos para evitar desinstalación no autorizada."
+                context.getString(R.string.app_admin_privileges)
             )
         }
-        startActivity(intent)
+        context.startActivity(intent)
     }
 
     private fun toggleVpn() {
@@ -187,10 +189,10 @@ fun getPingTime(host: String): Int {
     return if (result == 0) (end - start).toInt() else -1
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DNSChangerScreen(
     isVpnActive: Boolean,
-    dnsName: String,
     dnsAddress: String?,
     dnsPingMs: Int,
     onToggleVpn: () -> Unit,
@@ -207,182 +209,194 @@ fun DNSChangerScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var wrongPassword by remember { mutableStateOf(false) }
 
-    val statusText = if (isVpnActive) "Connected" else "Disconnected"
     val accentGreen = Color(0xFF4CAF50)
     val accentRed = Color(0xFFE57373)
     val cardColor = Color(0xFF2A2A2A)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF1E1E2F))
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Botón circular grande para conectar/desconectar
-        Box(
-            modifier = Modifier
-                .size(140.dp)
-                .clip(CircleShape)
-                .background(if (isVpnActive) accentGreen else Color.DarkGray)
-                .clickable { onToggleVpn() },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = if (isVpnActive) Icons.Default.Pause else Icons.Default.PlayArrow,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(64.dp)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        color = Color.White
+                    )
+                },
+                Modifier.background(Color(0xFF1E1E2F))
             )
         }
-
-        Spacer(Modifier.height(12.dp))
-
-        Text(
-            text = statusText,
-            color = if (isVpnActive) accentGreen else accentRed,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp
-        )
-
-        Spacer(Modifier.height(32.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(0.85f),
-            colors = CardDefaults.cardColors(containerColor = cardColor),
-            shape = RoundedCornerShape(16.dp)
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .background(Color(0xFF1E1E2F))
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
+                // Botón circular grande para conectar/desconectar
+                Box(
+                    modifier = Modifier
+                        .size(140.dp)
+                        .clip(CircleShape)
+                        .background(if (isVpnActive) accentGreen else Color.DarkGray)
+                        .clickable { onToggleVpn() },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        dnsName,
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                    Icon(
+                        imageVector = if (isVpnActive) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(64.dp)
                     )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Speed,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text("$dnsPingMs ms", color = Color.White)
+                }
+
+                Spacer(Modifier.height(32.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(0.85f),
+                    colors = CardDefaults.cardColors(containerColor = cardColor),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.vpn_ping), color = Color.Gray)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.Speed,
+                                    contentDescription = null,
+                                    tint = Color.Gray,
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text("$dnsPingMs ms", color = Color.Gray)
+                            }
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(stringResource(R.string.vpn_address), color = Color.Gray)
+                            Text(
+                                dnsAddress ?: stringResource(R.string.vpn_address_not_available),
+                                color = Color.Gray
+                            )
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(stringResource(R.string.vpn_status), color = Color.Gray)
+                            Text(
+                                text =
+                                    if (isVpnActive) stringResource(R.string.vpn_status_connected)
+                                    else stringResource(R.string.vpn_status_disconnected),
+                                color = if (isVpnActive) accentGreen else accentRed,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
+            }
 
-                Spacer(Modifier.height(8.dp))
+            // Diálogo para establecer contraseña
+            if (showSetPasswordDialog) {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(stringResource(R.string.set_password)) },
+                    text = {
+                        Column {
+                            OutlinedTextField(
+                                value = tempPassword,
+                                onValueChange = { tempPassword = it },
+                                label = { Text(stringResource(R.string.password)) }
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = confirmPassword,
+                                onValueChange = { confirmPassword = it },
+                                label = { Text(stringResource(R.string.confirm)) }
+                            )
+                            errorMessage?.let {
+                                Spacer(Modifier.height(8.dp))
+                                Text(it, color = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        val errorText = stringResource(R.string.password_not_matching)
 
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Address:", color = Color.Gray)
-                    Text(dnsAddress ?: "No disponible", color = Color.Gray)
-                }
+                        TextButton(onClick = {
+                            if (tempPassword.isNotBlank() && tempPassword == confirmPassword) {
+                                onSetPassword(tempPassword)
+                            } else {
+                                errorMessage = errorText
+                            }
+                        }) {
+                            Text(stringResource(R.string.save))
+                        }
+                    }
+                )
+            }
 
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Status:", color = Color.Gray)
-                    Text(
-                        text = if (isVpnActive) "CONNECTED" else "DISCONNECTED",
-                        color = if (isVpnActive) accentGreen else accentRed,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+            // Diálogo para ingresar contraseña al desconectar
+            if (showPasswordPrompt) {
+                AlertDialog(
+                    onDismissRequest = {
+                        onDismissPasswordPrompt()
+                        wrongPassword = false
+                    },
+                    title = { Text(stringResource(R.string.enter_disconnect_password)) },
+                    text = {
+                        Column {
+                            OutlinedTextField(
+                                value = enteredPassword,
+                                onValueChange = {
+                                    onEnteredPasswordChange(it)
+                                    wrongPassword = false
+                                },
+                                label = { Text(stringResource(R.string.password)) }
+                            )
+                            if (wrongPassword) {
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    stringResource(R.string.incorrect_password),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            val ok = onValidatePassword(enteredPassword)
+                            wrongPassword = !ok
+                        }) {
+                            Text(stringResource(R.string.accept))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            onDismissPasswordPrompt()
+                            wrongPassword = false
+                        }) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                    }
+                )
             }
         }
-    }
-
-    // Diálogo para establecer contraseña
-    if (showSetPasswordDialog) {
-        AlertDialog(
-            onDismissRequest = {},
-            title = { Text("Configura una contraseña") },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = tempPassword,
-                        onValueChange = { tempPassword = it },
-                        label = { Text("Contraseña") }
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = confirmPassword,
-                        onValueChange = { confirmPassword = it },
-                        label = { Text("Confirmar") }
-                    )
-                    errorMessage?.let {
-                        Spacer(Modifier.height(8.dp))
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (tempPassword.isNotBlank() && tempPassword == confirmPassword) {
-                        onSetPassword(tempPassword)
-                    } else {
-                        errorMessage = "Las contraseñas no coinciden"
-                    }
-                }) {
-                    Text("Guardar")
-                }
-            }
-        )
-    }
-
-    // Diálogo para ingresar contraseña al desconectar
-    if (showPasswordPrompt) {
-        AlertDialog(
-            onDismissRequest = {
-                onDismissPasswordPrompt()
-                wrongPassword = false
-            },
-            title = { Text("Introduce la contraseña") },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = enteredPassword,
-                        onValueChange = {
-                            onEnteredPasswordChange(it)
-                            wrongPassword = false
-                        },
-                        label = { Text("Contraseña") }
-                    )
-                    if (wrongPassword) {
-                        Spacer(Modifier.height(8.dp))
-                        Text("Contraseña incorrecta", color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val ok = onValidatePassword(enteredPassword)
-                    wrongPassword = !ok
-                }) {
-                    Text("Aceptar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    onDismissPasswordPrompt()
-                    wrongPassword = false
-                }) {
-                    Text("Cancelar")
-                }
-            }
-        )
     }
 }

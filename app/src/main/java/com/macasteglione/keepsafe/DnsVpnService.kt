@@ -10,7 +10,6 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import com.macasteglione.keepsafe.VpnStateManager.getVpnInterfaceAddress
@@ -21,12 +20,7 @@ class DnsVpnService : VpnService() {
     @SuppressLint("ForegroundServiceType")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == "STOP_VPN") {
-            Log.d("DnsVpnService", "Deteniendo servicio VPN")
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            vpnInterface?.close()
-            vpnInterface = null
-            VpnStateManager.setVpnActive(this, false)
-            stopSelf()
+            stopVpn()
             return START_NOT_STICKY
         }
 
@@ -47,20 +41,15 @@ class DnsVpnService : VpnService() {
             return START_NOT_STICKY
         }
 
-        val vpnAddress = getVpnInterfaceAddress() ?: "0.0.0.0"
-        val prefs = getSharedPreferences("vpn_prefs", Context.MODE_PRIVATE)
-        prefs.edit { putString("vpn_address", vpnAddress) }
-
+        saveVpnAddress()
         return START_STICKY
     }
 
-    override fun onDestroy() {
-        Log.d("DnsVpnService", "onDestroy called")
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        vpnInterface?.close()
-        vpnInterface = null
-        VpnStateManager.setVpnActive(this, false)
-        super.onDestroy()
+    private fun saveVpnAddress() {
+        val vpnAddress = getVpnInterfaceAddress() ?: "0.0.0.0"
+        getSharedPreferences("vpn_prefs", Context.MODE_PRIVATE).edit {
+            putString("vpn_address", vpnAddress)
+        }
     }
 
     private fun buildNotification(): Notification {
@@ -68,14 +57,14 @@ class DnsVpnService : VpnService() {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            NotificationChannel(
                 channelId,
                 "VPN",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Notificaciones del servicio VPN"
+                description = "VPN service running"
+                manager.createNotificationChannel(this)
             }
-            manager.createNotificationChannel(channel)
         }
 
         val intent = Intent(this, MainActivity::class.java).apply {
@@ -90,12 +79,25 @@ class DnsVpnService : VpnService() {
         )
 
         return NotificationCompat.Builder(this, channelId)
-            .setContentTitle("KeepSafe activo")
-            .setContentText("Protegiendo tu DNS con OpenDNS")
+            .setContentTitle(getString(R.string.notification_content_title))
+            .setContentText(getString(R.string.notification_content_description))
             .setSmallIcon(R.drawable.ic_vpn)
             .setContentIntent(pendingIntent)
             .setAutoCancel(false)
             .setOngoing(true)
             .build()
+    }
+
+    private fun stopVpn() {
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        vpnInterface?.close()
+        vpnInterface = null
+        VpnStateManager.setVpnActive(this, false)
+        stopSelf()
+    }
+
+    override fun onDestroy() {
+        stopVpn()
+        super.onDestroy()
     }
 }
