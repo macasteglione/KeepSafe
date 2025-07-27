@@ -209,9 +209,6 @@ fun DNSChangerScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var wrongPassword by remember { mutableStateOf(false) }
 
-    val statusText =
-        if (isVpnActive) stringResource(R.string.vpn_connected)
-        else stringResource(R.string.vpn_disconnected)
     val accentGreen = Color(0xFF4CAF50)
     val accentRed = Color(0xFFE57373)
     val cardColor = Color(0xFF2A2A2A)
@@ -258,15 +255,6 @@ fun DNSChangerScreen(
                         modifier = Modifier.size(64.dp)
                     )
                 }
-
-                Spacer(Modifier.height(12.dp))
-
-                Text(
-                    text = statusText,
-                    color = if (isVpnActive) accentGreen else accentRed,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                )
 
                 Spacer(Modifier.height(32.dp))
 
