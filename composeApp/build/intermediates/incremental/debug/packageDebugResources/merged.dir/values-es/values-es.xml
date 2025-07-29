@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accept">Aceptar</string>
+    <string name="active_as_admin">KeepSafe activado como administrador</string>
+    <string name="app_admin_privileges">KeepSafe necesita permisos para evitar desinstalación no autorizada.</string>
+    <string name="cancel">Cancelar</string>
+    <string name="confirm">Confirmar</string>
+    <string name="enter_disconnect_password">Introduce la contraseña</string>
+    <string name="enter_password_for_uninstall">Introduce la contraseña para desactivar KeepSafe</string>
+    <string name="incorrect_password">Contraseña incorrecta</string>
+    <string name="keepsafe_disabled">KeepSafe desactivado</string>
+    <string name="notification_content_description">Su DNS está protegido</string>
+    <string name="notification_content_title">KeepSafe activo</string>
+    <string name="password">Contraseña</string>
+    <string name="password_not_matching">Las contraseñas no coinciden</string>
+    <string name="save">Guardar</string>
+    <string name="set_password">Configura una contraseña</string>
+    <string name="vpn_address">Dirección:</string>
+    <string name="vpn_address_not_available">No disponible</string>
+    <string name="vpn_connected">Conectado</string>
+    <string name="vpn_disconnected">Desconectado</string>
+    <string name="vpn_ping">Ping:</string>
+    <string name="vpn_status">Estado:</string>
+    <string name="vpn_status_connected">CONECTADO</string>
+    <string name="vpn_status_disconnected">DESCONECTADO</string>
+</resources>

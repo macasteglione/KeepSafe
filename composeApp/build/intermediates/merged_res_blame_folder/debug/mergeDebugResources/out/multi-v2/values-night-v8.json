@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "org.macasteglione.keepsafe.composeApp-mergeDebugResources-53:/values-night-v8/values-night-v8.xml",
+            "map": [
+                {
+                    "source": "/home/maty/.gradle/caches/8.13/transforms/195143cec481714a95de3070e9caa503/transformed/core-splashscreen-1.0.1/res/values-night-v8/values-night-v8.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "85",
+                        "endOffsets": "136"
+                    }
+                }
+            ]
+        }
+    ]
+}

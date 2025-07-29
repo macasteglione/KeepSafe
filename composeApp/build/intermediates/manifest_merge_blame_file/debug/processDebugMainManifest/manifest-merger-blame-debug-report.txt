@@ -1,0 +1,229 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="org.macasteglione.keepsafe"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="35" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:5:5-67
+11-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:5:22-64
+12    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+12-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:6:5-77
+12-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:6:22-74
+13    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+13-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:7:5-89
+13-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:7:22-86
+14    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+14-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:8:5-79
+14-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:8:22-76
+15    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+15-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:9:5-79
+15-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:9:22-76
+16    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+16-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:10:5-76
+16-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:10:22-73
+17    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+17-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:11:5-13:47
+17-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:12:9-66
+18
+19    <permission
+19-->[androidx.core:core:1.16.0] /home/maty/.gradle/caches/8.13/transforms/ed31cf3daa03dfbcbe490651bab21a2e/transformed/core-1.16.0/AndroidManifest.xml:22:5-24:47
+20        android:name="org.macasteglione.keepsafe.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+20-->[androidx.core:core:1.16.0] /home/maty/.gradle/caches/8.13/transforms/ed31cf3daa03dfbcbe490651bab21a2e/transformed/core-1.16.0/AndroidManifest.xml:23:9-81
+21        android:protectionLevel="signature" />
+21-->[androidx.core:core:1.16.0] /home/maty/.gradle/caches/8.13/transforms/ed31cf3daa03dfbcbe490651bab21a2e/transformed/core-1.16.0/AndroidManifest.xml:24:9-44
+22
+23    <uses-permission android:name="org.macasteglione.keepsafe.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+23-->[androidx.core:core:1.16.0] /home/maty/.gradle/caches/8.13/transforms/ed31cf3daa03dfbcbe490651bab21a2e/transformed/core-1.16.0/AndroidManifest.xml:26:5-97
+23-->[androidx.core:core:1.16.0] /home/maty/.gradle/caches/8.13/transforms/ed31cf3daa03dfbcbe490651bab21a2e/transformed/core-1.16.0/AndroidManifest.xml:26:22-94
+24
+25    <application
+25-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:15:5-59:19
+26        android:allowBackup="true"
+26-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:16:9-35
+27        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+27-->[androidx.core:core:1.16.0] /home/maty/.gradle/caches/8.13/transforms/ed31cf3daa03dfbcbe490651bab21a2e/transformed/core-1.16.0/AndroidManifest.xml:28:18-86
+28        android:debuggable="true"
+29        android:extractNativeLibs="false"
+30        android:icon="@mipmap/ic_launcher"
+30-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:17:9-43
+31        android:label="@string/app_name"
+31-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:18:9-41
+32        android:roundIcon="@mipmap/ic_launcher_round"
+32-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:19:9-54
+33        android:supportsRtl="true"
+33-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:20:9-35
+34        android:testOnly="true"
+35        android:theme="@android:style/Theme.Material.Light.NoActionBar" >
+35-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:21:9-72
+36        <service
+36-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:22:9-31:19
+37            android:name="org.macasteglione.keepsafe.vpn.AndroidDnsVpnService"
+37-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:23:13-53
+38            android:exported="true"
+38-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:24:13-36
+39            android:foregroundServiceType="specialUse"
+39-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:25:13-55
+40            android:permission="android.permission.BIND_VPN_SERVICE" >
+40-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:26:13-69
+41            <intent-filter>
+41-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:28:13-30:29
+42                <action android:name="android.net.VpnService" />
+42-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:29:17-65
+42-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:29:25-62
+43            </intent-filter>
+44        </service>
+45
+46        <receiver
+46-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:32:9-42:20
+47            android:name="org.macasteglione.keepsafe.deviceAdmin.MyDeviceAdminReceiver"
+47-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:33:13-62
+48            android:exported="true"
+48-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:34:13-36
+49            android:permission="android.permission.BIND_DEVICE_ADMIN" >
+49-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:35:13-70
+50            <meta-data
+50-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:36:13-38:65
+51                android:name="android.app.device_admin"
+51-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:37:17-56
+52                android:resource="@xml/device_admin_receiver" />
+52-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:38:17-62
+53
+54            <intent-filter>
+54-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:39:13-41:29
+55                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+55-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:40:17-82
+55-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:40:25-79
+56            </intent-filter>
+57        </receiver>
+58
+59        <activity
+59-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:44:9-52:20
+60            android:name="org.macasteglione.keepsafe.MainActivity"
+60-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:45:13-41
+61            android:exported="true"
+61-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:46:13-36
+62            android:theme="@style/Theme.KeepSafe.Splash" >
+62-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:47:13-57
+63            <intent-filter>
+63-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:48:13-51:29
+64                <action android:name="android.intent.action.MAIN" />
+64-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:49:17-69
+64-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:49:25-66
+65
+66                <category android:name="android.intent.category.LAUNCHER" />
+66-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:50:17-77
+66-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:50:27-74
+67            </intent-filter>
+68        </activity>
+69        <activity
+69-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:53:9-58:53
+70            android:name="org.macasteglione.keepsafe.PasswordValidationActivity"
+70-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:54:13-55
+71            android:excludeFromRecents="true"
+71-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:55:13-46
+72            android:exported="false"
+72-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:56:13-37
+73            android:launchMode="singleTask"
+73-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:57:13-44
+74            android:theme="@style/Theme.KeepSafe" />
+74-->/mnt/Datos/KeepSafe/composeApp/src/androidMain/AndroidManifest.xml:58:13-50
+75
+76        <provider
+76-->[org.jetbrains.compose.components:components-resources-android:1.8.2] /home/maty/.gradle/caches/8.13/transforms/a992b9dad7616eaffe8c589c9ddb741e/transformed/library-release/AndroidManifest.xml:8:9-13:20
+77            android:name="org.jetbrains.compose.resources.AndroidContextProvider"
+77-->[org.jetbrains.compose.components:components-resources-android:1.8.2] /home/maty/.gradle/caches/8.13/transforms/a992b9dad7616eaffe8c589c9ddb741e/transformed/library-release/AndroidManifest.xml:9:13-82
+78            android:authorities="org.macasteglione.keepsafe.resources.AndroidContextProvider"
+78-->[org.jetbrains.compose.components:components-resources-android:1.8.2] /home/maty/.gradle/caches/8.13/transforms/a992b9dad7616eaffe8c589c9ddb741e/transformed/library-release/AndroidManifest.xml:10:13-84
+79            android:enabled="true"
+79-->[org.jetbrains.compose.components:components-resources-android:1.8.2] /home/maty/.gradle/caches/8.13/transforms/a992b9dad7616eaffe8c589c9ddb741e/transformed/library-release/AndroidManifest.xml:11:13-35
+80            android:exported="false" >
+80-->[org.jetbrains.compose.components:components-resources-android:1.8.2] /home/maty/.gradle/caches/8.13/transforms/a992b9dad7616eaffe8c589c9ddb741e/transformed/library-release/AndroidManifest.xml:12:13-37
+81        </provider>
+82        <provider
+82-->[androidx.emoji2:emoji2:1.4.0] /home/maty/.gradle/caches/8.13/transforms/ba511e92bb7d15f11fa9e380d63098f9/transformed/emoji2-1.4.0/AndroidManifest.xml:24:9-32:20
+83            android:name="androidx.startup.InitializationProvider"
+83-->[androidx.emoji2:emoji2:1.4.0] /home/maty/.gradle/caches/8.13/transforms/ba511e92bb7d15f11fa9e380d63098f9/transformed/emoji2-1.4.0/AndroidManifest.xml:25:13-67
+84            android:authorities="org.macasteglione.keepsafe.androidx-startup"
+84-->[androidx.emoji2:emoji2:1.4.0] /home/maty/.gradle/caches/8.13/transforms/ba511e92bb7d15f11fa9e380d63098f9/transformed/emoji2-1.4.0/AndroidManifest.xml:26:13-68
+85            android:exported="false" >
+85-->[androidx.emoji2:emoji2:1.4.0] /home/maty/.gradle/caches/8.13/transforms/ba511e92bb7d15f11fa9e380d63098f9/transformed/emoji2-1.4.0/AndroidManifest.xml:27:13-37
+86            <meta-data
+86-->[androidx.emoji2:emoji2:1.4.0] /home/maty/.gradle/caches/8.13/transforms/ba511e92bb7d15f11fa9e380d63098f9/transformed/emoji2-1.4.0/AndroidManifest.xml:29:13-31:52
+87                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+87-->[androidx.emoji2:emoji2:1.4.0] /home/maty/.gradle/caches/8.13/transforms/ba511e92bb7d15f11fa9e380d63098f9/transformed/emoji2-1.4.0/AndroidManifest.xml:30:17-75
+88                android:value="androidx.startup" />
+88-->[androidx.emoji2:emoji2:1.4.0] /home/maty/.gradle/caches/8.13/transforms/ba511e92bb7d15f11fa9e380d63098f9/transformed/emoji2-1.4.0/AndroidManifest.xml:31:17-49
+89            <meta-data
+89-->[androidx.lifecycle:lifecycle-process:2.9.2] /home/maty/.gradle/caches/8.13/transforms/650ba704eb8c5a31438d29ad050bdc33/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:29:13-31:52
+90                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+90-->[androidx.lifecycle:lifecycle-process:2.9.2] /home/maty/.gradle/caches/8.13/transforms/650ba704eb8c5a31438d29ad050bdc33/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:30:17-78
+91                android:value="androidx.startup" />
+91-->[androidx.lifecycle:lifecycle-process:2.9.2] /home/maty/.gradle/caches/8.13/transforms/650ba704eb8c5a31438d29ad050bdc33/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:31:17-49
+92            <meta-data
+92-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:29:13-31:52
+93                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+93-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:30:17-85
+94                android:value="androidx.startup" />
+94-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:31:17-49
+95        </provider>
+96
+97        <activity
+97-->[androidx.compose.ui:ui-tooling-android:1.8.3] /home/maty/.gradle/caches/8.13/transforms/658da2acd494584b1569b1abc3c27e73/transformed/ui-tooling-release/AndroidManifest.xml:23:9-25:39
+98            android:name="androidx.compose.ui.tooling.PreviewActivity"
+98-->[androidx.compose.ui:ui-tooling-android:1.8.3] /home/maty/.gradle/caches/8.13/transforms/658da2acd494584b1569b1abc3c27e73/transformed/ui-tooling-release/AndroidManifest.xml:24:13-71
+99            android:exported="true" />
+99-->[androidx.compose.ui:ui-tooling-android:1.8.3] /home/maty/.gradle/caches/8.13/transforms/658da2acd494584b1569b1abc3c27e73/transformed/ui-tooling-release/AndroidManifest.xml:25:13-36
+100        <activity
+100-->[androidx.compose.ui:ui-test-manifest:1.8.3] /home/maty/.gradle/caches/8.13/transforms/01f25604d2ff9a9e99d89306af7a2239/transformed/ui-test-manifest-1.8.3/AndroidManifest.xml:23:9-26:79
+101            android:name="androidx.activity.ComponentActivity"
+101-->[androidx.compose.ui:ui-test-manifest:1.8.3] /home/maty/.gradle/caches/8.13/transforms/01f25604d2ff9a9e99d89306af7a2239/transformed/ui-test-manifest-1.8.3/AndroidManifest.xml:24:13-63
+102            android:exported="true"
+102-->[androidx.compose.ui:ui-test-manifest:1.8.3] /home/maty/.gradle/caches/8.13/transforms/01f25604d2ff9a9e99d89306af7a2239/transformed/ui-test-manifest-1.8.3/AndroidManifest.xml:25:13-36
+103            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+103-->[androidx.compose.ui:ui-test-manifest:1.8.3] /home/maty/.gradle/caches/8.13/transforms/01f25604d2ff9a9e99d89306af7a2239/transformed/ui-test-manifest-1.8.3/AndroidManifest.xml:26:13-76
+104
+105        <receiver
+105-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:34:9-52:20
+106            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+106-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:35:13-76
+107            android:directBootAware="false"
+107-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:36:13-44
+108            android:enabled="true"
+108-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:37:13-35
+109            android:exported="true"
+109-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:38:13-36
+110            android:permission="android.permission.DUMP" >
+110-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:39:13-57
+111            <intent-filter>
+111-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:40:13-42:29
+112                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+112-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:41:17-91
+112-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:41:25-88
+113            </intent-filter>
+114            <intent-filter>
+114-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:43:13-45:29
+115                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+115-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:44:17-85
+115-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:44:25-82
+116            </intent-filter>
+117            <intent-filter>
+117-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:46:13-48:29
+118                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+118-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:47:17-88
+118-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:47:25-85
+119            </intent-filter>
+120            <intent-filter>
+120-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:49:13-51:29
+121                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+121-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:50:17-95
+121-->[androidx.profileinstaller:profileinstaller:1.4.0] /home/maty/.gradle/caches/8.13/transforms/9432f8b7e0065919f186e3d1173dfddb/transformed/profileinstaller-1.4.0/AndroidManifest.xml:50:25-92
+122            </intent-filter>
+123        </receiver>
+124    </application>
+125
+126</manifest>

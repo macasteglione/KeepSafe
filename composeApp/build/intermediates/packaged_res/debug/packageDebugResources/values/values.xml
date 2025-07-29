@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="splash_background">#FF1C1B2A</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="accept">Accept</string>
+    <string name="active_as_admin">KeepSafe enabled as administrator</string>
+    <string name="app_admin_privileges">KeepSafe requires permissions to prevent unauthorized uninstallation.</string>
+    <string name="app_name" translatable="false">KeepSafe</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+    <string name="enter_disconnect_password">Enter Password</string>
+    <string name="enter_password_for_uninstall">Enter your password to disable KeepSafe</string>
+    <string name="incorrect_password">Incorrect password</string>
+    <string name="keepsafe_disabled">KeepSafe disabled</string>
+    <string name="notification_content_description">Your DNS is being protected</string>
+    <string name="notification_content_title">KeepSafe active</string>
+    <string name="password">Password</string>
+    <string name="password_not_matching">Passwords do not match</string>
+    <string name="save">Save</string>
+    <string name="set_password">Set a password</string>
+    <string name="vpn_address">Address:</string>
+    <string name="vpn_address_not_available">Not available</string>
+    <string name="vpn_connected">Connected</string>
+    <string name="vpn_disconnected">Disconnected</string>
+    <string name="vpn_ping">Ping:</string>
+    <string name="vpn_status">Status:</string>
+    <string name="vpn_status_connected">CONNECTED</string>
+    <string name="vpn_status_disconnected">DISCONNECTED</string>
+    <style name="Theme.KeepSafe" parent="android:Theme.Material.Light.NoActionBar"/>
+    <style name="Theme.KeepSafe.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.KeepSafe</item>
+    </style>
+</resources>
