@@ -62,4 +62,5 @@ dependencies {
     implementation(libs.tink.android)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.kotlinx.coroutines.android)
 }
