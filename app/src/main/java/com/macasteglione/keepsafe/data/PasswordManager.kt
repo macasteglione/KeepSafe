@@ -1,4 +1,4 @@
-package com.macasteglione.keepsafe
+package com.macasteglione.keepsafe.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.aead.AeadConfig
+import com.google.crypto.tink.aead.AesGcmKeyManager
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import com.google.crypto.tink.subtle.Base64
 import kotlinx.coroutines.flow.first
@@ -26,7 +27,7 @@ object PasswordManager {
         AeadConfig.register()
         val keysetHandle = AndroidKeysetManager.Builder()
             .withSharedPref(context, KEYSET_NAME, PREFERENCE_FILE)
-            .withKeyTemplate(com.google.crypto.tink.aead.AesGcmKeyManager.aes256GcmTemplate())
+            .withKeyTemplate(AesGcmKeyManager.aes256GcmTemplate())
             .withMasterKeyUri(MASTER_KEY_URI)
             .build()
             .keysetHandle
