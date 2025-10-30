@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "512798668141",
+    "project_id": "keepsafe-f5efd",
+    "storage_bucket": "keepsafe-f5efd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:512798668141:android:efc0626b5aaf6a33169664",
+        "android_client_info": {
+          "package_name": "com.macasteglione.keepsafe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEIcNMy-sl5ZuqW8nGl80zdleWFNoi6O8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
