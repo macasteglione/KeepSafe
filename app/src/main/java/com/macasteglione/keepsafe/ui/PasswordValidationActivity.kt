@@ -1,42 +1,23 @@
 package com.macasteglione.keepsafe.ui
 
+import android.app.ActivityManager
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,32 +30,76 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.macasteglione.keepsafe.admin.MyDeviceAdminReceiver
 import com.macasteglione.keepsafe.data.PasswordManager
 import com.macasteglione.keepsafe.ui.theme.KeepSafeTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
+/**
+ * Activity de validación de contraseña REFORZADA
+ * Previene bypass por cierre de app desde recientes
+ */
 class PasswordValidationActivity : ComponentActivity() {
+
+    private var attemptCount = 0
+    private val maxAttempts = 3
+    private var isValidationComplete = false
+
+    // Flag para evitar re-activación
+    private var hasReactivated = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        setShowWhenLocked(true)
+        setTurnScreenOn(true)
+
         setContent {
             KeepSafeTheme {
+                LifecycleMonitor(
+                    onPaused = {
+                        if (!isValidationComplete) {
+                            handleBypassAttempt()
+                        }
+                    }
+                )
+
                 PasswordValidationScreen(
+                    attemptsRemaining = maxAttempts - attemptCount,
                     onPasswordCorrect = {
+                        isValidationComplete = true
                         MyDeviceAdminReceiver.deactivateAdmin(this)
                         Toast.makeText(
                             this,
-                            "Protección desactivada. Ahora puedes desinstalar KeepSafe.",
+                            "Protección desactivada correctamente.",
                             Toast.LENGTH_LONG
                         ).show()
                         finish()
                     },
                     onMaxAttemptsReached = {
+                        isValidationComplete = true
+                        reactivateDeviceAdmin()
                         Toast.makeText(
                             this,
-                            "Demasiados intentos fallidos. Protección mantenida.",
+                            "Demasiados intentos. Protección mantenida.",
                             Toast.LENGTH_LONG
+                        ).show()
+                        finish()
+                    },
+                    onPasswordWrong = {
+                        attemptCount++
+                    },
+                    onCancelled = {
+                        isValidationComplete = true
+                        reactivateDeviceAdmin()
+                        Toast.makeText(
+                            this,
+                            "Protección mantenida activa",
+                            Toast.LENGTH_SHORT
                         ).show()
                         finish()
                     }
@@ -83,46 +108,154 @@ class PasswordValidationActivity : ComponentActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        if (!isValidationComplete && !isFinishing) {
+            handleBypassAttempt()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        if (!isValidationComplete && !isFinishing) {
+            handleBypassAttempt()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        if (!isValidationComplete) {
+            handleBypassAttempt()
+        }
+    }
+
+    /**
+     * Maneja intentos de bypass (cerrar app desde recientes)
+     */
+    private fun handleBypassAttempt() {
+        if (hasReactivated) return
+        hasReactivated = true
+
+        Toast.makeText(
+            this,
+            "Intento de bypass detectado. Reactivando protección...",
+            Toast.LENGTH_LONG
+        ).show()
+
+        // Re-activar Device Admin
+        reactivateDeviceAdmin()
+
+        // Relanzar esta activity para forzar validación
+        val intent = Intent(this, PasswordValidationActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        startActivity(intent)
+    }
+
+    /**
+     * Re-activa el Device Admin si fue desactivado
+     */
+    private fun reactivateDeviceAdmin() {
+        val dpm = getSystemService(DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        val component = ComponentName(this, MyDeviceAdminReceiver::class.java)
+
+        if (!dpm.isAdminActive(component)) {
+            val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, component)
+                putExtra(
+                    DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                    "ATENCIÓN: Se detectó un intento de bypass. " +
+                            "Debes ingresar la contraseña correcta para desactivar KeepSafe."
+                )
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        }
+    }
+
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        super.onBackPressed()
-        // Prevenir que se cierre con el botón atrás
+        // NO permitir salir con botón atrás
         Toast.makeText(
             this,
             "Debes ingresar la contraseña correcta para continuar",
             Toast.LENGTH_SHORT
         ).show()
-        // NO llamar a super.onBackPressed() para bloquear el botón atrás
+        // NO llamar a super.onBackPressed()
+    }
+
+    override fun onTaskRemoved(intent: Intent?) {
+        super.onTaskRemoved(intent)
+        // Si remueven la tarea, re-activar protección
+        if (!isValidationComplete) {
+            reactivateDeviceAdmin()
+        }
+    }
+}
+
+/**
+ * Composable que monitorea el ciclo de vida de la Activity
+ */
+@Composable
+fun LifecycleMonitor(
+    onPaused: () -> Unit = {},
+    onResumed: () -> Unit = {},
+    onStopped: () -> Unit = {}
+) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> onPaused()
+                Lifecycle.Event.ON_RESUME -> onResumed()
+                Lifecycle.Event.ON_STOP -> onStopped()
+                else -> {}
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 }
 
 @Composable
 fun PasswordValidationScreen(
+    attemptsRemaining: Int,
     onPasswordCorrect: () -> Unit,
     onMaxAttemptsReached: () -> Unit,
+    onPasswordWrong: () -> Unit,
+    onCancelled: () -> Unit = {},
     maxAttempts: Int = 3
 ) {
     val context = LocalContext.current
 
-    // Estados del Composable - SE MANTIENEN DURANTE RECOMPOSICIONES
     var enteredPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-    var attemptCount by remember { mutableIntStateOf(0) }
+    var showWarning by remember { mutableStateOf(false) }
 
-    val attemptsRemaining = maxAttempts - attemptCount
+    // Auto-detectar si el usuario intenta salir
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            delay(1000)
 
-    // Prevenir que se salga de la pantalla
-    BackHandler {
-        Toast.makeText(
-            context,
-            "Debes ingresar la contraseña correcta",
-            Toast.LENGTH_SHORT
-        ).show()
+            val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+            val component = ComponentName(context, MyDeviceAdminReceiver::class.java)
+
+            if (!dpm.isAdminActive(component)) {
+                showWarning = true
+            }
+        }
     }
 
-    // Función para validar contraseña
     val validatePassword: () -> Unit = {
         if (enteredPassword.isNotBlank() && !isLoading) {
             isLoading = true
@@ -133,22 +266,29 @@ fun PasswordValidationScreen(
                 onPasswordCorrect()
             } else {
                 isError = true
-                attemptCount++  // Incrementar contador
                 enteredPassword = ""
+                onPasswordWrong()
 
-                if (attemptCount >= maxAttempts) {
-                    // Máximo de intentos alcanzado
+                if (attemptsRemaining - 1 <= 0) {
                     onMaxAttemptsReached()
                 } else {
-                    // Mostrar intentos restantes
                     Toast.makeText(
                         context,
-                        "Contraseña incorrecta. ${maxAttempts - attemptCount} intentos restantes.",
+                        "Contraseña incorrecta. ${attemptsRemaining - 1} intentos restantes.",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
             }
         }
+    }
+
+    // Prevenir salida con botón atrás
+    BackHandler {
+        Toast.makeText(
+            context,
+            "Debes ingresar la contraseña correcta",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     Column(
@@ -159,7 +299,33 @@ fun PasswordValidationScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Icono de bloqueo
+        // Advertencia si detecta bypass
+        if (showWarning) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFE57373))
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        "Intento de bypass detectado!\nSe ha reactivado la protección.",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
         Icon(
             imageVector = Icons.Default.Lock,
             contentDescription = null,
@@ -185,9 +351,18 @@ fun PasswordValidationScreen(
             textAlign = TextAlign.Center
         )
 
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = "Cerrar esta pantalla reactivará la protección",
+            fontSize = 12.sp,
+            color = Color(0xFFFFB74D),
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold
+        )
+
         Spacer(Modifier.height(32.dp))
 
-        // Campo de contraseña
         OutlinedTextField(
             value = enteredPassword,
             onValueChange = {
@@ -215,10 +390,7 @@ fun PasswordValidationScreen(
                             Icons.Default.Visibility
                         else
                             Icons.Default.VisibilityOff,
-                        contentDescription = if (passwordVisible)
-                            "Ocultar contraseña"
-                        else
-                            "Mostrar contraseña"
+                        contentDescription = null
                     )
                 }
             },
@@ -245,13 +417,12 @@ fun PasswordValidationScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        // Contador de intentos con color dinámico
         Text(
             text = "Intentos restantes: $attemptsRemaining",
             color = when {
-                attemptsRemaining <= 1 -> Color(0xFFE57373)  // Rojo
-                attemptsRemaining == 2 -> Color(0xFFFFB74D)  // Naranja
-                else -> Color.Gray                            // Gris
+                attemptsRemaining <= 1 -> Color(0xFFE57373)
+                attemptsRemaining == 2 -> Color(0xFFFFB74D)
+                else -> Color.Gray
             },
             fontSize = 14.sp,
             fontWeight = if (attemptsRemaining <= 1) FontWeight.Bold else FontWeight.Normal
@@ -262,7 +433,7 @@ fun PasswordValidationScreen(
         // Botón de confirmación
         Button(
             onClick = validatePassword,
-            enabled = enteredPassword.isNotBlank() && !isLoading && attemptCount < maxAttempts,
+            enabled = enteredPassword.isNotBlank() && !isLoading && attemptsRemaining > 0,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -281,9 +452,46 @@ fun PasswordValidationScreen(
             }
         }
 
+        Spacer(Modifier.height(12.dp))
+
+        OutlinedButton(
+            onClick = {
+                onCancelled()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = Color.Gray
+            ),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color.Gray)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Cancelar", fontSize = 16.sp)
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Texto explicativo del botón cancelar
+        Text(
+            text = "Cancelar mantendrá la protección activa",
+            fontSize = 12.sp,
+            color = Color(0xFF4CAF50),
+            textAlign = TextAlign.Center
+        )
+
         Spacer(Modifier.height(32.dp))
 
-        // Card de advertencia
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -302,7 +510,9 @@ fun PasswordValidationScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Al desactivar KeepSafe, se eliminará toda la protección contra contenido peligroso e inapropiado.",
+                    text = "• Al desactivar KeepSafe, se eliminará toda la protección.\n" +
+                            "• Cerrar esta pantalla reactivará automáticamente la protección.\n" +
+                            "• El Device Admin se activará nuevamente si intentas hacer bypass.",
                     color = Color.Gray,
                     fontSize = 14.sp,
                     lineHeight = 20.sp
