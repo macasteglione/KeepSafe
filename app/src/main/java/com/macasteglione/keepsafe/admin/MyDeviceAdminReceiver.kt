@@ -10,8 +10,20 @@ import android.util.Log
 import android.widget.Toast
 import com.macasteglione.keepsafe.ui.PasswordValidationActivity
 
+/**
+ * Device administrator receiver for parental control features.
+ *
+ * Handles device admin activation/deactivation and applies security
+ * restrictions to prevent uninstallation and enforce parental controls.
+ * Provides comprehensive device management capabilities for content filtering.
+ */
 class MyDeviceAdminReceiver : DeviceAdminReceiver() {
 
+    /**
+     * Called when device administrator is enabled.
+     *
+     * Shows confirmation toast when admin privileges are granted.
+     */
     override fun onEnabled(context: Context, intent: Intent) {
         super.onEnabled(context, intent)
         Toast.makeText(
@@ -21,10 +33,16 @@ class MyDeviceAdminReceiver : DeviceAdminReceiver() {
         ).show()
     }
 
+    /**
+     * Called when device administrator is disabled.
+     *
+     * Launches password validation activity to confirm admin deactivation.
+     * This prevents unauthorized removal of parental controls.
+     */
     override fun onDisabled(context: Context, intent: Intent) {
         super.onDisabled(context, intent)
 
-        // Lanzar validación de contraseña
+        // Launch password validation before allowing admin deactivation
         val passwordIntent = Intent(context, PasswordValidationActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }

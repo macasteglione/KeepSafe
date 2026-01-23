@@ -52,8 +52,13 @@ import androidx.compose.ui.unit.sp
 import com.macasteglione.keepsafe.admin.MyDeviceAdminReceiver
 import com.macasteglione.keepsafe.data.PasswordManager
 import com.macasteglione.keepsafe.ui.theme.KeepSafeTheme
+import com.macasteglione.keepsafe.ui.UiConstants
 
 class PasswordValidationActivity : ComponentActivity() {
+
+    companion object {
+        // Constants are now centralized in UiConstants
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,7 +105,7 @@ class PasswordValidationActivity : ComponentActivity() {
 fun PasswordValidationScreen(
     onPasswordCorrect: () -> Unit,
     onMaxAttemptsReached: () -> Unit,
-    maxAttempts: Int = 3
+    maxAttempts: Int = UiConstants.MAX_PASSWORD_ATTEMPTS
 ) {
     val context = LocalContext.current
 
@@ -154,7 +159,7 @@ fun PasswordValidationScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1E1E2F))
+            .background(UiConstants.BACKGROUND_DARK)
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -163,7 +168,7 @@ fun PasswordValidationScreen(
         Icon(
             imageVector = Icons.Default.Lock,
             contentDescription = null,
-            tint = Color(0xFFE57373),
+            tint = UiConstants.ACCENT_RED,
             modifier = Modifier.size(80.dp)
         )
 
@@ -223,10 +228,10 @@ fun PasswordValidationScreen(
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF4CAF50),
+                focusedBorderColor = UiConstants.ACCENT_GREEN,
                 unfocusedBorderColor = Color.Gray,
-                errorBorderColor = Color(0xFFE57373),
-                focusedLabelColor = Color(0xFF4CAF50),
+                errorBorderColor = UiConstants.ACCENT_RED,
+                focusedLabelColor = UiConstants.ACCENT_GREEN,
                 unfocusedLabelColor = Color.Gray,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
@@ -238,7 +243,7 @@ fun PasswordValidationScreen(
             Spacer(Modifier.height(8.dp))
             Text(
                 "Contraseña incorrecta",
-                color = Color(0xFFE57373),
+                color = UiConstants.ACCENT_RED,
                 fontSize = 14.sp
             )
         }
@@ -249,9 +254,9 @@ fun PasswordValidationScreen(
         Text(
             text = "Intentos restantes: $attemptsRemaining",
             color = when {
-                attemptsRemaining <= 1 -> Color(0xFFE57373)  // Rojo
-                attemptsRemaining == 2 -> Color(0xFFFFB74D)  // Naranja
-                else -> Color.Gray                            // Gris
+                attemptsRemaining <= 1 -> UiConstants.ACCENT_RED       // Rojo para último intento
+                attemptsRemaining == 2 -> UiConstants.ACCENT_ORANGE    // Naranja para penúltimo
+                else -> Color.Gray                          // Gris para intentos normales
             },
             fontSize = 14.sp,
             fontWeight = if (attemptsRemaining <= 1) FontWeight.Bold else FontWeight.Normal
@@ -267,7 +272,7 @@ fun PasswordValidationScreen(
                 .fillMaxWidth()
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF4CAF50),
+                containerColor = UiConstants.ACCENT_GREEN,
                 disabledContainerColor = Color.Gray
             )
         ) {
@@ -287,7 +292,7 @@ fun PasswordValidationScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF2A2A2A)
+                containerColor = UiConstants.CARD_BACKGROUND
             ),
             shape = MaterialTheme.shapes.medium
         ) {
@@ -296,7 +301,7 @@ fun PasswordValidationScreen(
             ) {
                 Text(
                     text = "Advertencia",
-                    color = Color(0xFFFFB74D),
+                    color = UiConstants.ACCENT_ORANGE,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )

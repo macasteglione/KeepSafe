@@ -5,13 +5,18 @@ import android.content.Context
 import android.content.Intent
 import android.net.VpnService
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.macasteglione.keepsafe.data.VpnStateManager
 import com.macasteglione.keepsafe.service.DnsVpnService
+import com.macasteglione.keepsafe.ui.UiConstants
 
 class BootReceiver : BroadcastReceiver() {
 
     private val tag = "BootReceiver"
+
+
 
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(tag, "Broadcast recibido: ${intent.action}")
@@ -28,10 +33,10 @@ class BootReceiver : BroadcastReceiver() {
                 Log.d(tag, "Estado VPN guardado: $wasVpnActive")
 
                 if (wasVpnActive) {
-                    // Iniciar VPN después de un delay
+                    // Iniciar VPN después de un delay para permitir que el sistema termine de iniciar
                     android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                         startVpnService(context)
-                    }, 5000) // 5 segundos para que el sistema termine de iniciar
+                    }, UiConstants.VPN_START_DELAY_MS)
                 }
             }
         }
