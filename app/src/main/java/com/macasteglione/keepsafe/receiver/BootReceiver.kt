@@ -3,39 +3,63 @@ package com.macasteglione.keepsafe.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.net.VpnService
 import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.macasteglione.keepsafe.data.VpnStateManager
 import com.macasteglione.keepsafe.service.DnsVpnService
 
-/**
- * Receiver que detecta cuando el dispositivo se reinicia
- * y reactiva el VPN automáticamente si estaba activo antes
- */
 class BootReceiver : BroadcastReceiver() {
 
     private val tag = "BootReceiver"
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            Log.d(tag, "Dispositivo reiniciado, verificando VPN...")
+        Log.d(tag, "Broadcast recibido: ${intent.action}")
 
-            // Verificar si el VPN estaba activo antes del reinicio
-            val wasVpnActive = VpnStateManager.getVpnState(context)
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED,
+            Intent.ACTION_LOCKED_BOOT_COMPLETED,
+            "android.intent.action.QUICKBOOT_POWERON" -> {
+                Log.d(tag, "📱 Dispositivo iniciado, verificando VPN...")
 
-            if (wasVpnActive) {
-                Log.d(tag, "VPN estaba activo, reiniciando servicio...")
+                // Verificar si el VPN estaba activo
+                val wasVpnActive = VpnStateManager.getVpnState(context)
 
-                // Pequeño delay para que el sistema termine de iniciar
-                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                    val serviceIntent = Intent(context, DnsVpnService::class.java)
-                    context.startForegroundService(serviceIntent)
-                }, 3000) // 3 segundos de delay
-            } else {
-                Log.d(tag, "VPN no estaba activo, no se reinicia")
+                Log.d(tag, "Estado VPN guardado: $wasVpnActive")
+
+                if (wasVpnActive) {
+                    // Iniciar VPN después de un delay
+                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                        startVpnService(context)
+                    }, 5000) // 5 segundos para que el sistema termine de iniciar
+                }
             }
+        }
+    }
+
+    private fun startVpnService(context: Context) {
+        try {
+            // Verificar si ya tenemos permiso VPN
+            val vpnIntent = VpnService.prepare(context)
+
+            if (vpnIntent == null) {
+                // Ya tenemos permiso, iniciar servicio
+                Log.d(tag, "✅ Permiso VPN ya concedido, iniciando servicio...")
+
+                val serviceIntent = Intent(context, DnsVpnService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent)
+                } else {
+                    context.startService(serviceIntent)
+                }
+
+                Log.d(tag, "✅ Servicio VPN iniciado")
+            } else {
+                Log.w(tag, "⚠️ Se necesita permiso VPN, no se puede auto-iniciar")
+                // El usuario tendrá que abrir la app manualmente
+            }
+        } catch (e: Exception) {
+            Log.e(tag, "❌ Error al iniciar VPN: ${e.message}", e)
         }
     }
 }
