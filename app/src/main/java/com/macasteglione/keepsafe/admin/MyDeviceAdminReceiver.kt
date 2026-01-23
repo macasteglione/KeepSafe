@@ -5,6 +5,7 @@ import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.UserManager
 import android.util.Log
 import android.widget.Toast
 import com.macasteglione.keepsafe.ui.PasswordValidationActivity
@@ -76,6 +77,39 @@ class MyDeviceAdminReceiver : DeviceAdminReceiver() {
                     "KeepSafe desactivado. Ahora puedes desinstalar la aplicación.",
                     Toast.LENGTH_LONG
                 ).show()
+            }
+        }
+
+        fun applyMaximumRestrictions(context: Context) {
+            val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+            val component = ComponentName(context, MyDeviceAdminReceiver::class.java)
+
+            // Verificar si es Device Owner
+            if (!dpm.isDeviceOwnerApp(context.packageName)) {
+                Log.w("DeviceAdmin", "No es Device Owner, no se pueden aplicar restricciones")
+                return
+            }
+
+            try {
+                // Bloquear configuración VPN (Android 7.0+)
+                dpm.addUserRestriction(component, UserManager.DISALLOW_CONFIG_VPN)
+
+                // Bloquear modo seguro
+                dpm.addUserRestriction(component, UserManager.DISALLOW_SAFE_BOOT)
+
+                // Bloquear factory reset desde configuración
+                dpm.addUserRestriction(component, UserManager.DISALLOW_FACTORY_RESET)
+
+                // Bloquear agregar usuarios
+                dpm.addUserRestriction(component, UserManager.DISALLOW_ADD_USER)
+
+                // NUEVO: Bloquear instalación de apps desconocidas
+                dpm.addUserRestriction(component, UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES)
+
+                // Bloquear desinstalación de apps (incluido KeepSafe)
+                dpm.addUserRestriction(component, UserManager.DISALLOW_UNINSTALL_APPS)
+            } catch (e: Exception) {
+                Log.e("DeviceAdmin", "Error aplicando restricciones: ${e.message}")
             }
         }
     }

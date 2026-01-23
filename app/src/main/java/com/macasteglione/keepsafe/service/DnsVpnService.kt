@@ -87,7 +87,6 @@ class DnsVpnService : VpnService() {
             .addAddress(DnsConfiguration.VPN_ADDRESS, DnsConfiguration.VPN_PREFIX_LENGTH)
             .addDnsServer(primaryDns)
             .addDnsServer(secondaryDns)
-            // Si agregas .addRoute(0.0.0.0, 0) bloqueará TODO el tráfico
             .setMtu(DnsConfiguration.VPN_MTU)
             .setBlocking(false)
 
@@ -116,7 +115,7 @@ class DnsVpnService : VpnService() {
 
         try {
             establishVpnConnection()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Thread.sleep(2000)
             try {
                 establishVpnConnection()

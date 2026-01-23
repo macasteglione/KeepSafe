@@ -3,6 +3,7 @@ package com.macasteglione.keepsafe.ui
 import android.content.Intent
 import android.net.VpnService
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -52,8 +53,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.macasteglione.keepsafe.data.PasswordManager
 import com.macasteglione.keepsafe.admin.MyDeviceAdminReceiver
+import com.macasteglione.keepsafe.data.PasswordManager
 import com.macasteglione.keepsafe.data.VpnStateManager
 import com.macasteglione.keepsafe.service.DnsVpnService
 import com.macasteglione.keepsafe.ui.theme.KeepSafeTheme
@@ -74,6 +75,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         vpnRunningState.value = VpnStateManager.isVpnReallyActive(this)
+        MyDeviceAdminReceiver.applyMaximumRestrictions(this)
+        checkVpnStatusAfterUpdate()
 
         setContent {
             KeepSafeTheme {
@@ -129,6 +132,41 @@ class MainActivity : ComponentActivity() {
     private fun startVpnService() {
         startService(Intent(this, DnsVpnService::class.java))
         vpnRunningState.value = true
+    }
+
+    private fun checkVpnStatusAfterUpdate() {
+        val shouldBeActive = VpnStateManager.getVpnState(this)
+        val isActuallyActive = VpnStateManager.isVpnReallyActive(this)
+
+        if (shouldBeActive && !isActuallyActive) {
+            // Mostrar diálogo urgente
+            android.app.AlertDialog.Builder(this)
+                .setTitle("Protección Desactivada")
+                .setMessage(
+                    "KeepSafe se detuvo durante la actualización.\n\n" +
+                            "¿Deseas reactivar la protección ahora?"
+                )
+                .setCancelable(false)
+                .setPositiveButton("Reactivar") { _, _ ->
+                    // Iniciar VPN
+                    val intent = VpnService.prepare(this)
+                    if (intent != null) {
+                        startActivityForResult(intent, 100)
+                    } else {
+                        startService(Intent(this, DnsVpnService::class.java))
+                        vpnRunningState.value = true
+                    }
+                }
+                .setNegativeButton("Ahora No") { _, _ ->
+                    // Usuario decide no reactivar
+                    Toast.makeText(
+                        this,
+                        "Navegando sin protección",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                .show()
+        }
     }
 }
 

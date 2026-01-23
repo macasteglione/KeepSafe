@@ -1,12 +1,13 @@
 package com.macasteglione.keepsafe.core.dns
 
 object DnsConfiguration {
-    const val PRIMARY_DNS = "208.67.222.123"
-    const val SECONDARY_DNS = "208.67.220.123"
+    // OpenDNS
+    //const val PRIMARY_DNS = "208.67.222.123"
+    //const val SECONDARY_DNS = "208.67.220.123"
 
-    // OpenDNS Standard (alternativa)
-    //const val PRIMARY_DNS_ALT = "208.67.222.222"
-    //const val SECONDARY_DNS_ALT = "208.67.220.220"
+    // CleanBrowsing
+    const val PRIMARY_DNS = "185.228.168.168"
+    const val SECONDARY_DNS = "185.228.169.168"
 
     // Configuración VPN
     const val VPN_ADDRESS = "10.0.0.2"
