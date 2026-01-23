@@ -10,6 +10,7 @@ import android.os.Looper
 import android.util.Log
 import com.macasteglione.keepsafe.data.VpnStateManager
 import com.macasteglione.keepsafe.service.DnsVpnService
+import com.macasteglione.keepsafe.ui.UiConstants
 
 /**
  * Detecta cuando la app se actualiza y reactiva el VPN automáticamente
@@ -18,6 +19,8 @@ class AppUpdateReceiver : BroadcastReceiver() {
 
     private val tag = "AppUpdateReceiver"
 
+
+
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             Intent.ACTION_MY_PACKAGE_REPLACED -> {
@@ -25,7 +28,7 @@ class AppUpdateReceiver : BroadcastReceiver() {
                 // Verificar si el VPN estaba activo antes
                 Handler(Looper.getMainLooper()).postDelayed({
                     restartVpnIfNeeded(context)
-                }, 3000) // 3 segundos de delay para que el sistema termine
+                }, UiConstants.VPN_RESTART_DELAY_MS)
             }
 
             Intent.ACTION_PACKAGE_REPLACED -> {
@@ -34,7 +37,7 @@ class AppUpdateReceiver : BroadcastReceiver() {
                 if (packageName == context.packageName) {
                     Handler(Looper.getMainLooper()).postDelayed({
                         restartVpnIfNeeded(context)
-                    }, 3000)
+                    }, UiConstants.VPN_RESTART_DELAY_MS)
                 }
             }
         }
@@ -97,6 +100,6 @@ class AppUpdateReceiver : BroadcastReceiver() {
             .setContentIntent(pendingIntent)
             .build()
 
-        notificationManager.notify(9999, notification)
+        notificationManager.notify(UiConstants.REACTIVATION_NOTIFICATION_ID, notification)
     }
 }
