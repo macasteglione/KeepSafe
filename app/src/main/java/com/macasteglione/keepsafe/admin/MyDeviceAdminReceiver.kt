@@ -109,6 +109,9 @@ class MyDeviceAdminReceiver : DeviceAdminReceiver() {
             }
 
             try {
+                // Bugfix de eliminar aplicaciones
+                dpm.clearUserRestriction(component, UserManager.DISALLOW_UNINSTALL_APPS)
+
                 // Bloquear configuración VPN (Android 7.0+)
                 dpm.addUserRestriction(component, UserManager.DISALLOW_CONFIG_VPN)
 
@@ -124,8 +127,8 @@ class MyDeviceAdminReceiver : DeviceAdminReceiver() {
                 // NUEVO: Bloquear instalación de apps desconocidas
                 dpm.addUserRestriction(component, UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES)
 
-                // Bloquear desinstalación de apps (incluido KeepSafe)
-                dpm.addUserRestriction(component, UserManager.DISALLOW_UNINSTALL_APPS)
+                // Bloquear desinstalación de KeepSafe
+                dpm.setUninstallBlocked(component, context.packageName, true)
             } catch (e: Exception) {
                 Log.e("DeviceAdmin", "Error aplicando restricciones: ${e.message}")
             }
