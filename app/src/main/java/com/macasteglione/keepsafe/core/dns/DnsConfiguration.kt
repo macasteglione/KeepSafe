@@ -13,10 +13,10 @@ package com.macasteglione.keepsafe.core.dns
  */
 object DnsConfiguration {
 
-    // DNS server configuration - CleanBrowsing Family Filter
+    // DNS server configuration - OpenDNS
     // Provides content filtering for adult and malicious content
-    const val PRIMARY_DNS = "185.228.168.168"
-    const val SECONDARY_DNS = "185.228.169.168"
+    const val PRIMARY_DNS = "208.67.222.222"
+    const val SECONDARY_DNS = "208.67.220.220"
 
     // VPN tunnel configuration
     const val VPN_ADDRESS = "10.0.0.2"          // Local VPN interface IP
