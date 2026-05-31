@@ -55,11 +55,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.macasteglione.keepsafe.admin.MyDeviceAdminReceiver
+import com.macasteglione.keepsafe.core.dns.DnsConfiguration
 import com.macasteglione.keepsafe.data.PasswordManager
 import com.macasteglione.keepsafe.data.VpnStateManager
 import com.macasteglione.keepsafe.service.DnsVpnService
 import com.macasteglione.keepsafe.ui.theme.KeepSafeTheme
-import com.macasteglione.keepsafe.ui.UiConstants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -174,7 +174,7 @@ class MainActivity : ComponentActivity() {
                 // Request VPN permission from system if needed
                 val intent = VpnService.prepare(this)
                 if (intent != null) {
-                        startActivityForResult(intent, UiConstants.REQUEST_VPN_PERMISSION)
+                    startActivityForResult(intent, UiConstants.REQUEST_VPN_PERMISSION)
                 } else {
                     startVpnService()
                 }
@@ -230,7 +230,7 @@ class MainActivity : ComponentActivity() {
                     // Start VPN after getting permission
                     val intent = VpnService.prepare(this)
                     if (intent != null) {
-                    startActivityForResult(intent, UiConstants.REQUEST_VPN_PERMISSION)
+                        startActivityForResult(intent, UiConstants.REQUEST_VPN_PERMISSION)
                     } else {
                         startService(Intent(this, DnsVpnService::class.java))
                         vpnRunningState.value = true
@@ -292,7 +292,7 @@ fun MainScreen(
         while (vpnRunningState) {
             isCheckingPing = true
             dnsPingMs = withContext(Dispatchers.IO) {
-                getPingTime("208.67.222.123") // OpenDNS primary server
+                getPingTime(DnsConfiguration.PRIMARY_DNS) // Usar IP de NextDNS
             }
             isCheckingPing = false
             delay(UiConstants.PING_UPDATE_INTERVAL_MS) // Update every 5 seconds
@@ -335,7 +335,7 @@ fun MainScreen(
             enteredPassword = ""
             showPasswordPrompt = false
         },
-        dnsName = "OpenDNS Family Shield",
+        dnsName = "NextDNS Protection",
         dnsAddress = dnsAddress,
         dnsPingMs = dnsPingMs,
         isCheckingPing = isCheckingPing
@@ -525,7 +525,8 @@ fun DNSChangerScreen(
                     }
 
                     tempPassword.length < UiConstants.MIN_PASSWORD_LENGTH -> {
-                        errorMessage = "La contraseña debe tener al menos ${UiConstants.MIN_PASSWORD_LENGTH} caracteres"
+                        errorMessage =
+                            "La contraseña debe tener al menos ${UiConstants.MIN_PASSWORD_LENGTH} caracteres"
                     }
 
                     tempPassword != confirmPassword -> {

@@ -5,13 +5,14 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.util.Log
 
 /**
- * Network connectivity monitor for VPN reconnection.
+ * Monitor for network connectivity changes.
  *
- * Monitors network state changes and triggers VPN reconnection when
- * network connectivity changes occur. This ensures the VPN tunnel
- * remains active across network transitions (WiFi to mobile data, etc.).
+ * Registers a callback to listen for internet-capable network transitions
+ * (WiFi and Cellular) while ignoring VPN-type network changes to avoid
+ * reconnection loops.
  */
 class NetworkMonitor(
     private val context: Context,
@@ -23,14 +24,9 @@ class NetworkMonitor(
 
     /**
      * Starts monitoring network connectivity changes.
-     *
-     * Registers a network callback that listens for internet-capable
-     * networks (WiFi and cellular) and triggers reconnection when
-     * network changes are detected.
      */
     fun startMonitoring() {
-        connectivityManager =
-            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         val networkRequest = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -39,33 +35,25 @@ class NetworkMonitor(
             .build()
 
         networkCallback = object : ConnectivityManager.NetworkCallback() {
-            /**
-             * Called when a new network becomes available.
-             */
             override fun onAvailable(network: Network) {
                 handleNetworkChange(network)
             }
 
-            /**
-             * Called when a network is lost.
-             */
             override fun onLost(network: Network) {
                 if (currentNetwork == network) {
                     currentNetwork = null
                 }
             }
 
-            /**
-             * Called when network capabilities change.
-             */
-            override fun onCapabilitiesChanged(
-                network: Network,
-                capabilities: NetworkCapabilities
-            ) {
-                // Check for WiFi or cellular transport (validation)
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
-                handleNetworkChange(network)
+            override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+                // IMPORTANT: Ignore changes coming from our own VPN to avoid loops
+                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return
+
+                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+                ) {
+                    handleNetworkChange(network)
+                }
             }
         }
 
@@ -73,26 +61,23 @@ class NetworkMonitor(
     }
 
     /**
-     * Handles network change events.
+     * Handles detected network change events.
      *
-     * Triggers the network change callback when the active network
-     * changes, but only if there was a previous network connection.
-     * This prevents unnecessary reconnections on initial connection.
-     *
-     * @param network The new network that became active
+     * @param network The network that became active or changed capabilities.
      */
     private fun handleNetworkChange(network: Network) {
         if (currentNetwork != null && currentNetwork != network) {
+            Log.w("NetworkMonitor", "Network changed from $currentNetwork to $network")
+            currentNetwork = network
+            onNetworkChanged()
+        } else if (currentNetwork == null) {
+            currentNetwork = network
             onNetworkChanged()
         }
-        currentNetwork = network
     }
 
     /**
      * Stops network monitoring and cleans up resources.
-     *
-     * Unregisters the network callback and clears all references
-     * to prevent memory leaks and unnecessary callbacks.
      */
     fun stopMonitoring() {
         networkCallback?.let { callback ->

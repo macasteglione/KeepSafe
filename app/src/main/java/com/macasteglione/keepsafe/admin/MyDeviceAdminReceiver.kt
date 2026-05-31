@@ -5,6 +5,7 @@ import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.UserManager
 import android.util.Log
 import android.widget.Toast
@@ -129,6 +130,16 @@ class MyDeviceAdminReceiver : DeviceAdminReceiver() {
 
                 // Bloquear desinstalación de KeepSafe
                 dpm.setUninstallBlocked(component, context.packageName, true)
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    dpm.setGlobalSetting(component, "private_dns_mode", "hostname")
+                    dpm.setGlobalSetting(
+                        component,
+                        "private_dns_specifier",
+                        "4162c1.dns.nextdns.io"
+                    )
+                    Log.d("DeviceAdmin", "✅ Private DNS de NextDNS configurado")
+                }
             } catch (e: Exception) {
                 Log.e("DeviceAdmin", "Error aplicando restricciones: ${e.message}")
             }
