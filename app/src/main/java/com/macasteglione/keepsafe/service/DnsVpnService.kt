@@ -21,12 +21,6 @@ import com.macasteglione.keepsafe.ui.MainActivity
 import com.macasteglione.keepsafe.ui.UiConstants
 import kotlin.concurrent.thread
 
-/**
- * Background service that manages the DNS VPN tunnel.
- *
- * This service handles the lifecycle of the VpnService, including establishment,
- * reconnection on network changes, and integration with Root-level DNS fixes.
- */
 @SuppressLint("VpnServicePolicy")
 class DnsVpnService : VpnService() {
 
@@ -35,19 +29,12 @@ class DnsVpnService : VpnService() {
     private var networkMonitor: NetworkMonitor? = null
     private var isReconnecting = false
 
-    /**
-     * Called when the service is first created.
-     *
-     * Initializes network monitoring to handle automatic reconnection
-     * when network conditions change.
-     */
     override fun onCreate() {
         super.onCreate()
         setupNetworkMonitoring()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Immediate foreground notification to comply with Android 8.0+ requirements
         startForeground(UiConstants.NOTIFICATION_ID, buildNotification())
 
         when (intent?.action) {
@@ -77,16 +64,13 @@ class DnsVpnService : VpnService() {
         networkMonitor?.startMonitoring()
     }
 
-    /**
-     * Configures and establishes the VPN tunnel.
-     * Uses a transparent approach where DNS is redirected via Root iptables
-     * to avoid "No Internet" system errors while keeping the VPN icon active.
-     */
     private fun establishVpnConnection() {
         try {
             vpnInterface?.close()
 
             val (primaryDns, secondaryDns) = DnsConfiguration.getDnsServers()
+
+            thread { RootUtils.applyRootDnsFix() }
 
             val builder = Builder()
                 .setSession(DnsConfiguration.VPN_SESSION_NAME)
@@ -98,20 +82,21 @@ class DnsVpnService : VpnService() {
 
             configureAddressFamilies(builder)
 
+            try {
+                builder.addDisallowedApplication(packageName)
+            } catch (_: Exception) {}
+
             vpnInterface = builder.establish()
 
             if (vpnInterface != null) {
                 VpnStateManager.setVpnActive(this, true)
-                Log.d(tag, "✅ VPN established (Transparent DNS mode)")
+                Log.d(tag, "VPN established (Transparent DNS mode)")
                 NextDnsLinkedIpUpdater.updateLinkedIp()
+
+                val vpnAddress = VpnStateManager.getVpnInterfaceAddress() ?: DnsConfiguration.VPN_ADDRESS
+                saveVpnAddress(vpnAddress)
+                Log.d(tag, "VPN connection established successfully with address: $vpnAddress")
             }
-
-            val vpnAddress =
-                VpnStateManager.getVpnInterfaceAddress() ?: DnsConfiguration.VPN_ADDRESS
-            saveVpnAddress(vpnAddress)
-            VpnStateManager.setVpnActive(this, true)
-
-            Log.d(tag, "VPN connection established successfully with address: $vpnAddress")
 
         } catch (e: SecurityException) {
             Log.e(tag, "Security exception during VPN establishment: ${e.message}")
@@ -124,15 +109,24 @@ class DnsVpnService : VpnService() {
         }
     }
 
+    private fun configureAddressFamilies(builder: Builder) {
+        try {
+            builder.allowFamily(android.system.OsConstants.AF_INET)
+            builder.allowFamily(android.system.OsConstants.AF_INET6)
+        } catch (_: Exception) {}
+    }
+
+    private fun saveVpnAddress(address: String) {
+        val prefs = getSharedPreferences("vpn_prefs", MODE_PRIVATE)
+        prefs.edit().putString("vpn_address", address).apply()
+    }
+
     private fun reconnectVpn() {
         if (isReconnecting) return
         isReconnecting = true
-        Thread.sleep(500)
+        Log.w(tag, "Reconnecting VPN due to network change...")
 
-        try {
-            establishVpnConnection()
-        } catch (_: Exception) {
-            Thread.sleep(2000)
+        thread {
             try {
                 vpnInterface?.close()
                 vpnInterface = null
@@ -149,14 +143,11 @@ class DnsVpnService : VpnService() {
 
     private fun stopVpnService() {
         networkMonitor?.stopMonitoring()
-        
-        // Clean up root rules when stopping
         thread { RootUtils.clearRootDnsSettings() }
 
         stopForeground(true)
         vpnInterface?.close()
         vpnInterface = null
-
         VpnStateManager.setVpnActive(this, false)
         stopSelf()
         Log.d(tag, "VPN service stopped and Root rules cleared")
@@ -172,9 +163,6 @@ class DnsVpnService : VpnService() {
         super.onRevoke()
     }
 
-    /**
-     * Builds the foreground notification for the VPN service.
-     */
     private fun buildNotification(): Notification {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
@@ -184,7 +172,7 @@ class DnsVpnService : VpnService() {
                 "KeepSafe Protection",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Muestra cuando KeepSafe está protegiendo tu conexión"
+                description = "Shows when KeepSafe is protecting your connection"
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
@@ -197,13 +185,13 @@ class DnsVpnService : VpnService() {
         }
 
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent, 
+            this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         return NotificationCompat.Builder(this, UiConstants.CHANNEL_ID)
             .setContentTitle("KeepSafe Active")
-            .setContentText("Your connection is protected by NextDNS")
+            .setContentText("Your connection is protected by OpenDNS Family Shield")
             .setSmallIcon(R.drawable.ic_vpn)
             .setContentIntent(pendingIntent)
             .setAutoCancel(false)
