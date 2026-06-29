@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.macasteglione.keepsafe.admin.MyDeviceAdminReceiver
+import com.macasteglione.keepsafe.core.dns.DnsConfiguration
 import com.macasteglione.keepsafe.data.PasswordManager
 import com.macasteglione.keepsafe.data.VpnStateManager
 import com.macasteglione.keepsafe.service.DnsVpnService
@@ -318,7 +319,7 @@ fun MainScreen(
             enteredPassword = ""
             showPasswordPrompt = false
         },
-        dnsName = "OpenDNS Family Shield",
+        dnsName = "NextDNS Protection",
         dnsAddress = dnsAddress,
         dnsPingMs = dnsPingMs,
         isCheckingPing = isCheckingPing
