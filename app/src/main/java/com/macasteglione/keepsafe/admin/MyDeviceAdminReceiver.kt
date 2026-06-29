@@ -42,7 +42,6 @@ class MyDeviceAdminReceiver : DeviceAdminReceiver() {
     override fun onDisabled(context: Context, intent: Intent) {
         super.onDisabled(context, intent)
 
-        // Launch password validation before allowing admin deactivation
         val passwordIntent = Intent(context, PasswordValidationActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
@@ -102,7 +101,6 @@ class MyDeviceAdminReceiver : DeviceAdminReceiver() {
             val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
             val component = ComponentName(context, MyDeviceAdminReceiver::class.java)
 
-            // Verificar si es Device Owner
             if (!dpm.isDeviceOwnerApp(context.packageName)) {
                 Log.w("DeviceAdmin", "No es Device Owner, no se pueden aplicar restricciones")
                 return

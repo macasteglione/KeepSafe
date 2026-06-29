@@ -36,19 +36,9 @@ import com.macasteglione.keepsafe.ui.UiConstants
 class DnsVpnService : VpnService() {
 
     private val tag = "DnsVpnService"
-
-    // VPN interface management
     private var vpnInterface: ParcelFileDescriptor? = null
-
-    // Network monitoring for reconnection
     private var networkMonitor: NetworkMonitor? = null
-
-    // Flag to prevent multiple simultaneous reconnection attempts
     private var isReconnecting = false
-
-    companion object {
-        // Constants moved to UiConstants for centralization
-    }
 
     /**
      * Called when the service is first created.
@@ -136,25 +126,20 @@ class DnsVpnService : VpnService() {
      */
     private fun establishVpnConnection() {
         try {
-            // Close any existing connection
             vpnInterface?.close()
 
-            // Get DNS server configuration
             val (primaryDns, secondaryDns) = DnsConfiguration.getDnsServers()
 
-            // Build VPN configuration
             val builder = Builder()
                 .setSession(DnsConfiguration.VPN_SESSION_NAME)
                 .addAddress(DnsConfiguration.VPN_ADDRESS, DnsConfiguration.VPN_PREFIX_LENGTH)
                 .addDnsServer(primaryDns)
                 .addDnsServer(secondaryDns)
                 .setMtu(DnsConfiguration.VPN_MTU)
-                .setBlocking(false) // Non-blocking mode for better performance
+                .setBlocking(false)
 
-            // Configure address families (IPv4 and IPv6 support)
             configureAddressFamilies(builder)
 
-            // Establish the VPN interface
             vpnInterface = builder.establish()
 
             if (vpnInterface == null) {
@@ -163,8 +148,8 @@ class DnsVpnService : VpnService() {
                 return
             }
 
-            // Save VPN address for UI display and update state
-            val vpnAddress = VpnStateManager.getVpnInterfaceAddress() ?: DnsConfiguration.VPN_ADDRESS
+            val vpnAddress =
+                VpnStateManager.getVpnInterfaceAddress() ?: DnsConfiguration.VPN_ADDRESS
             saveVpnAddress(vpnAddress)
             VpnStateManager.setVpnActive(this, true)
 
@@ -217,12 +202,11 @@ class DnsVpnService : VpnService() {
      */
     private fun reconnectVpn() {
         isReconnecting = true
-        Thread.sleep(500) // Brief pause before reconnection
+        Thread.sleep(500)
 
         try {
             establishVpnConnection()
         } catch (_: Exception) {
-            // First attempt failed, wait longer and try again
             Thread.sleep(2000)
             try {
                 establishVpnConnection()
@@ -245,18 +229,15 @@ class DnsVpnService : VpnService() {
      * 5. Stops the service
      */
     private fun stopVpnService() {
-        // Stop network monitoring
         networkMonitor?.stopMonitoring()
         networkMonitor = null
 
-        // Remove foreground notification
         stopForeground(true)
 
         // Close VPN interface
         vpnInterface?.close()
         vpnInterface = null
 
-        // Update state and stop service
         VpnStateManager.setVpnActive(this, false)
         stopSelf()
 
@@ -311,7 +292,6 @@ class DnsVpnService : VpnService() {
     private fun buildNotification(): Notification {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-        // Create notification channel for Android 8.0+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 UiConstants.CHANNEL_ID,
@@ -319,14 +299,13 @@ class DnsVpnService : VpnService() {
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Muestra cuando KeepSafe está protegiendo tu conexión"
-                setShowBadge(false) // Don't show badge on app icon
-                enableLights(false) // No notification lights
-                enableVibration(false) // No vibration for ongoing service
+                setShowBadge(false)
+                enableLights(false)
+                enableVibration(false)
             }
             manager.createNotificationChannel(channel)
         }
 
-        // Create intent to open main activity when notification tapped
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -338,14 +317,13 @@ class DnsVpnService : VpnService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Build the notification
         return NotificationCompat.Builder(this, UiConstants.CHANNEL_ID)
             .setContentTitle("KeepSafe Activo")
             .setContentText("DNS protegido con OpenDNS Family Shield")
             .setSmallIcon(R.drawable.ic_vpn)
             .setContentIntent(pendingIntent)
-            .setAutoCancel(false) // Cannot be dismissed by user
-            .setOngoing(true) // Ongoing service indicator
+            .setAutoCancel(false)
+            .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

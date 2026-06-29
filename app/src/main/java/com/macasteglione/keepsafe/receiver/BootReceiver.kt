@@ -13,10 +13,7 @@ import com.macasteglione.keepsafe.service.DnsVpnService
 import com.macasteglione.keepsafe.ui.UiConstants
 
 class BootReceiver : BroadcastReceiver() {
-
     private val tag = "BootReceiver"
-
-
 
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(tag, "Broadcast recibido: ${intent.action}")
@@ -25,16 +22,14 @@ class BootReceiver : BroadcastReceiver() {
             Intent.ACTION_BOOT_COMPLETED,
             Intent.ACTION_LOCKED_BOOT_COMPLETED,
             "android.intent.action.QUICKBOOT_POWERON" -> {
-                Log.d(tag, "📱 Dispositivo iniciado, verificando VPN...")
+                Log.d(tag, "Dispositivo iniciado, verificando VPN...")
 
-                // Verificar si el VPN estaba activo
                 val wasVpnActive = VpnStateManager.getVpnState(context)
 
                 Log.d(tag, "Estado VPN guardado: $wasVpnActive")
 
                 if (wasVpnActive) {
-                    // Iniciar VPN después de un delay para permitir que el sistema termine de iniciar
-                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    Handler(Looper.getMainLooper()).postDelayed({
                         startVpnService(context)
                     }, UiConstants.VPN_START_DELAY_MS)
                 }
@@ -44,12 +39,10 @@ class BootReceiver : BroadcastReceiver() {
 
     private fun startVpnService(context: Context) {
         try {
-            // Verificar si ya tenemos permiso VPN
             val vpnIntent = VpnService.prepare(context)
 
             if (vpnIntent == null) {
-                // Ya tenemos permiso, iniciar servicio
-                Log.d(tag, "✅ Permiso VPN ya concedido, iniciando servicio...")
+                Log.d(tag, "Permiso VPN ya concedido, iniciando servicio...")
 
                 val serviceIntent = Intent(context, DnsVpnService::class.java)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -58,13 +51,12 @@ class BootReceiver : BroadcastReceiver() {
                     context.startService(serviceIntent)
                 }
 
-                Log.d(tag, "✅ Servicio VPN iniciado")
+                Log.d(tag, "Servicio VPN iniciado")
             } else {
-                Log.w(tag, "⚠️ Se necesita permiso VPN, no se puede auto-iniciar")
-                // El usuario tendrá que abrir la app manualmente
+                Log.w(tag, "Se necesita permiso VPN, no se puede auto-iniciar")
             }
         } catch (e: Exception) {
-            Log.e(tag, "❌ Error al iniciar VPN: ${e.message}", e)
+            Log.e(tag, "Error al iniciar VPN: ${e.message}", e)
         }
     }
 }

@@ -52,14 +52,8 @@ import androidx.compose.ui.unit.sp
 import com.macasteglione.keepsafe.admin.MyDeviceAdminReceiver
 import com.macasteglione.keepsafe.data.PasswordManager
 import com.macasteglione.keepsafe.ui.theme.KeepSafeTheme
-import com.macasteglione.keepsafe.ui.UiConstants
 
 class PasswordValidationActivity : ComponentActivity() {
-
-    companion object {
-        // Constants are now centralized in UiConstants
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -91,13 +85,11 @@ class PasswordValidationActivity : ComponentActivity() {
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         super.onBackPressed()
-        // Prevenir que se cierre con el botón atrás
         Toast.makeText(
             this,
             "Debes ingresar la contraseña correcta para continuar",
             Toast.LENGTH_SHORT
         ).show()
-        // NO llamar a super.onBackPressed() para bloquear el botón atrás
     }
 }
 
@@ -109,7 +101,6 @@ fun PasswordValidationScreen(
 ) {
     val context = LocalContext.current
 
-    // Estados del Composable - SE MANTIENEN DURANTE RECOMPOSICIONES
     var enteredPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
@@ -118,7 +109,6 @@ fun PasswordValidationScreen(
 
     val attemptsRemaining = maxAttempts - attemptCount
 
-    // Prevenir que se salga de la pantalla
     BackHandler {
         Toast.makeText(
             context,
@@ -127,7 +117,6 @@ fun PasswordValidationScreen(
         ).show()
     }
 
-    // Función para validar contraseña
     val validatePassword: () -> Unit = {
         if (enteredPassword.isNotBlank() && !isLoading) {
             isLoading = true
@@ -138,14 +127,12 @@ fun PasswordValidationScreen(
                 onPasswordCorrect()
             } else {
                 isError = true
-                attemptCount++  // Incrementar contador
+                attemptCount++
                 enteredPassword = ""
 
                 if (attemptCount >= maxAttempts) {
-                    // Máximo de intentos alcanzado
                     onMaxAttemptsReached()
                 } else {
-                    // Mostrar intentos restantes
                     Toast.makeText(
                         context,
                         "Contraseña incorrecta. ${maxAttempts - attemptCount} intentos restantes.",
@@ -164,7 +151,6 @@ fun PasswordValidationScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Icono de bloqueo
         Icon(
             imageVector = Icons.Default.Lock,
             contentDescription = null,
@@ -192,7 +178,6 @@ fun PasswordValidationScreen(
 
         Spacer(Modifier.height(32.dp))
 
-        // Campo de contraseña
         OutlinedTextField(
             value = enteredPassword,
             onValueChange = {
@@ -250,13 +235,12 @@ fun PasswordValidationScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        // Contador de intentos con color dinámico
         Text(
             text = "Intentos restantes: $attemptsRemaining",
             color = when {
-                attemptsRemaining <= 1 -> UiConstants.ACCENT_RED       // Rojo para último intento
-                attemptsRemaining == 2 -> UiConstants.ACCENT_ORANGE    // Naranja para penúltimo
-                else -> Color.Gray                          // Gris para intentos normales
+                attemptsRemaining <= 1 -> UiConstants.ACCENT_RED
+                attemptsRemaining == 2 -> UiConstants.ACCENT_ORANGE
+                else -> Color.Gray
             },
             fontSize = 14.sp,
             fontWeight = if (attemptsRemaining <= 1) FontWeight.Bold else FontWeight.Normal
@@ -264,7 +248,6 @@ fun PasswordValidationScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        // Botón de confirmación
         Button(
             onClick = validatePassword,
             enabled = enteredPassword.isNotBlank() && !isLoading && attemptCount < maxAttempts,
@@ -288,7 +271,6 @@ fun PasswordValidationScreen(
 
         Spacer(Modifier.height(32.dp))
 
-        // Card de advertencia
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(

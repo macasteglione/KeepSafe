@@ -34,13 +34,9 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore("secure_pr
  * - Base64 encoding for encrypted data storage
  */
 object PasswordManager {
-
-    // Tink key management constants
     private const val KEYSET_NAME = "master_keyset"
     private const val PREFERENCE_FILE = "master_key_preference"
     private const val MASTER_KEY_URI = "android-keystore://vpn_master_key"
-
-    // DataStore key for encrypted password
     private val PASSWORD_KEY = stringPreferencesKey("vpn_password")
 
     /**
@@ -127,11 +123,9 @@ object PasswordManager {
             val decrypted = aead.decrypt(encryptedBytes, null).decodeToString()
             return@runBlocking decrypted == password
         } catch (e: SecurityException) {
-            // Cryptographic error - log and return false
             Log.e("PasswordManager", "Cryptographic validation error: ${e.message}")
             return@runBlocking false
         } catch (e: Exception) {
-            // Any other error - log and return false
             Log.e("PasswordManager", "Password validation error: ${e.message}")
             return@runBlocking false
         }
