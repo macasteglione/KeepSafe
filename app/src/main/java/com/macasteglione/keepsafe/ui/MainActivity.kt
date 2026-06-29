@@ -31,7 +31,8 @@ import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -63,6 +64,7 @@ import com.macasteglione.keepsafe.ui.theme.KeepSafeTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Main activity for the KeepSafe application.
@@ -80,7 +82,6 @@ import kotlinx.coroutines.withContext
  */
 class MainActivity : ComponentActivity() {
 
-    // VPN state management - tracks current VPN connection status
     private val vpnRunningState = mutableStateOf(false)
 
     /**
@@ -102,13 +103,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Initialize VPN state by checking if service is actually running
         vpnRunningState.value = VpnStateManager.isVpnReallyActive(this)
-
-        // Apply maximum device restrictions for parental control
         MyDeviceAdminReceiver.applyMaximumRestrictions(this)
-
-        // Check if VPN needs to be reactivated after app update
         checkVpnStatusAfterUpdate()
 
         setContent {
@@ -130,7 +126,6 @@ class MainActivity : ComponentActivity() {
      */
     override fun onResume() {
         super.onResume()
-        // Update VPN state when returning to the app
         vpnRunningState.value = VpnStateManager.isVpnReallyActive(this)
     }
 
@@ -144,7 +139,6 @@ class MainActivity : ComponentActivity() {
         if (!vpnRunningState.value) {
             startVpn()
         }
-        // To stop VPN, user must enter password in the dialog
     }
 
     /**
@@ -158,20 +152,17 @@ class MainActivity : ComponentActivity() {
      */
     private fun startVpn() {
         when {
-            // Safety check: ensure password is configured
             !PasswordManager.isPasswordSet(this) -> {
                 Log.w("MainActivity", "VPN start attempted without password set")
                 return
             }
 
-            // Ensure device admin privileges are active
             !MyDeviceAdminReceiver.isAdminActive(this) -> {
                 MyDeviceAdminReceiver.requestAdminActivation(this)
                 return
             }
 
             else -> {
-                // Request VPN permission from system if needed
                 val intent = VpnService.prepare(this)
                 if (intent != null) {
                     startActivityForResult(intent, UiConstants.REQUEST_VPN_PERMISSION)
@@ -218,7 +209,6 @@ class MainActivity : ComponentActivity() {
         val isActuallyActive = VpnStateManager.isVpnReallyActive(this)
 
         if (shouldBeActive && !isActuallyActive) {
-            // Show urgent reactivation dialog
             android.app.AlertDialog.Builder(this)
                 .setTitle("Protección Desactivada")
                 .setMessage(
@@ -227,7 +217,6 @@ class MainActivity : ComponentActivity() {
                 )
                 .setCancelable(false)
                 .setPositiveButton("Reactivar") { _, _ ->
-                    // Start VPN after getting permission
                     val intent = VpnService.prepare(this)
                     if (intent != null) {
                         startActivityForResult(intent, UiConstants.REQUEST_VPN_PERMISSION)
@@ -237,7 +226,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 .setNegativeButton("Ahora No") { _, _ ->
-                    // User chooses not to reactivate
                     Toast.makeText(
                         this,
                         "Navegando sin protección",
@@ -267,35 +255,31 @@ fun MainScreen(
 ) {
     val context = LocalContext.current
 
-    // Dialog visibility states
     var showSetPassword by remember { mutableStateOf(!PasswordManager.isPasswordSet(context)) }
     var showPasswordPrompt by remember { mutableStateOf(false) }
     var enteredPassword by remember { mutableStateOf("") }
 
-    // DNS information display states
     var dnsAddress by remember { mutableStateOf("No disponible") }
     var dnsPingMs by remember { mutableIntStateOf(0) }
     var isCheckingPing by remember { mutableStateOf(false) }
 
-    // Update DNS address when VPN state changes
     LaunchedEffect(vpnRunningState) {
         if (vpnRunningState) {
-            delay(UiConstants.VPN_UPDATE_DELAY_MS) // Wait for VPN to establish
+            delay(UiConstants.VPN_UPDATE_DELAY_MS.milliseconds)
             dnsAddress = VpnStateManager.getSavedVpnAddress(context)
         } else {
             dnsAddress = "No disponible"
         }
     }
 
-    // Monitor ping time periodically when VPN is active
     LaunchedEffect(vpnRunningState) {
         while (vpnRunningState) {
             isCheckingPing = true
             dnsPingMs = withContext(Dispatchers.IO) {
-                getPingTime(DnsConfiguration.PRIMARY_DNS) // Usar IP de NextDNS
+                getPingTime("208.67.222.123")
             }
             isCheckingPing = false
-            delay(UiConstants.PING_UPDATE_INTERVAL_MS) // Update every 5 seconds
+            delay(UiConstants.PING_UPDATE_INTERVAL_MS.milliseconds)
         }
     }
 
@@ -351,14 +335,12 @@ fun MainScreen(
 fun getPingTime(host: String): Int {
     return try {
         val start = System.currentTimeMillis()
-        // Execute ping command with 1 packet and 2 second timeout
         val process = Runtime.getRuntime().exec("/system/bin/ping -c 1 -W 2 $host")
         val result = process.waitFor()
         val end = System.currentTimeMillis()
-        // Return ping time if successful (exit code 0), otherwise -1
         if (result == 0) (end - start).toInt() else -1
     } catch (_: Exception) {
-        -1 // Return -1 on any error
+        -1
     }
 }
 
@@ -401,13 +383,11 @@ fun DNSChangerScreen(
     onEnteredPasswordChange: (String) -> Unit,
     onDismissPasswordPrompt: () -> Unit
 ) {
-    // Password setup dialog state
     var tempPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var wrongPassword by remember { mutableStateOf(false) }
 
-    // UI color scheme based on VPN state
     val statusText = if (isVpnActive) "Connected" else "Disconnected"
 
     Column(
@@ -418,7 +398,6 @@ fun DNSChangerScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Botón circular grande
         Box(
             modifier = Modifier
                 .size(140.dp)
@@ -446,7 +425,6 @@ fun DNSChangerScreen(
 
         Spacer(Modifier.height(32.dp))
 
-        // Tarjeta de información
         Card(
             modifier = Modifier.fillMaxWidth(0.9f),
             colors = CardDefaults.cardColors(containerColor = UiConstants.CARD_BACKGROUND),
@@ -456,7 +434,6 @@ fun DNSChangerScreen(
             Column(
                 modifier = Modifier.padding(20.dp)
             ) {
-                // Título y ping
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth(),
@@ -485,10 +462,13 @@ fun DNSChangerScreen(
                 }
 
                 Spacer(Modifier.height(16.dp))
-                Divider(color = Color.Gray.copy(alpha = 0.3f))
+                HorizontalDivider(
+                    Modifier,
+                    DividerDefaults.Thickness,
+                    color = Color.Gray.copy(alpha = 0.3f)
+                )
                 Spacer(Modifier.height(16.dp))
 
-                // Dirección
                 InfoRow(
                     label = "DNS Address:",
                     value = dnsAddress,
@@ -497,7 +477,6 @@ fun DNSChangerScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                // Estado
                 InfoRow(
                     label = "Status:",
                     value = if (isVpnActive) "CONNECTED" else "DISCONNECTED",
@@ -510,7 +489,6 @@ fun DNSChangerScreen(
         Spacer(Modifier.height(24.dp))
     }
 
-    // Diálogo para establecer contraseña inicial
     if (showSetPasswordDialog) {
         SetPasswordDialog(
             tempPassword = tempPassword,
@@ -542,7 +520,6 @@ fun DNSChangerScreen(
         )
     }
 
-    // Diálogo para validar contraseña al desconectar
     if (showPasswordPrompt) {
         ValidatePasswordDialog(
             enteredPassword = enteredPassword,
@@ -633,7 +610,7 @@ fun SetPasswordDialog(
     onConfirm: () -> Unit
 ) {
     AlertDialog(
-        onDismissRequest = {}, // Cannot be dismissed - password must be set
+        onDismissRequest = {},
         title = { Text("Configura una contraseña de seguridad") },
         text = {
             Column {
@@ -655,7 +632,6 @@ fun SetPasswordDialog(
                 )
                 Spacer(Modifier.height(8.dp))
 
-                // Password confirmation field
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = onConfirmPasswordChange,
@@ -665,7 +641,6 @@ fun SetPasswordDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Display error message if validation failed
                 errorMessage?.let {
                     Spacer(Modifier.height(8.dp))
                     Text(it, color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
@@ -713,7 +688,6 @@ fun ValidatePasswordDialog(
                 )
                 Spacer(Modifier.height(16.dp))
 
-                // Password input field with error state
                 OutlinedTextField(
                     value = enteredPassword,
                     onValueChange = onPasswordChange,
@@ -724,7 +698,6 @@ fun ValidatePasswordDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Show error message if password was wrong
                 if (wrongPassword) {
                     Spacer(Modifier.height(8.dp))
                     Text(

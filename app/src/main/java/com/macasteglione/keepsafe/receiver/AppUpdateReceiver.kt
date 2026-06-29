@@ -24,8 +24,6 @@ class AppUpdateReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             Intent.ACTION_MY_PACKAGE_REPLACED -> {
-                // La app fue actualizada (reemplazada)
-                // Verificar si el VPN estaba activo antes
                 Handler(Looper.getMainLooper()).postDelayed({
                     restartVpnIfNeeded(context)
                 }, UiConstants.VPN_RESTART_DELAY_MS)
@@ -44,15 +42,12 @@ class AppUpdateReceiver : BroadcastReceiver() {
     }
 
     private fun restartVpnIfNeeded(context: Context) {
-        // Verificar si el VPN debería estar activo
         val shouldBeActive = VpnStateManager.getVpnState(context)
 
         if (shouldBeActive) {
-            // Verificar permiso VPN
             val vpnIntent = VpnService.prepare(context)
 
             if (vpnIntent == null) {
-                // Tenemos permiso, iniciar VPN
                 val serviceIntent = Intent(context, DnsVpnService::class.java)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     context.startForegroundService(serviceIntent)
@@ -60,7 +55,6 @@ class AppUpdateReceiver : BroadcastReceiver() {
                     context.startService(serviceIntent)
                 }
             } else {
-                // Mostrar notificación recordatoria
                 showReactivationNotification(context)
             }
         } else {

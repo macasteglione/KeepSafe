@@ -45,15 +45,16 @@ class NetworkMonitor(
                 }
             }
 
-            override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-                // IMPORTANT: Ignore changes coming from our own VPN to avoid loops
-                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return
-
-                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
-                ) {
-                    handleNetworkChange(network)
-                }
+            /**
+             * Called when network capabilities change.
+             */
+            override fun onCapabilitiesChanged(
+                network: Network,
+                capabilities: NetworkCapabilities
+            ) {
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+                handleNetworkChange(network)
             }
         }
 
