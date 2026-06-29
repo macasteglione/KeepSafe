@@ -14,8 +14,6 @@ import kotlinx.coroutines.runBlocking
  * and system services for real-time status checking.
  */
 object VpnStateManager {
-
-    // SharedPreferences keys for VPN state storage
     private const val PREFS_NAME = "vpn_prefs"
     private const val KEY_VPN_ACTIVE = "vpn_active"
     private const val KEY_VPN_ADDRESS = "vpn_address"
@@ -89,12 +87,10 @@ object VpnStateManager {
         return try {
             val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
             for (networkInterface in interfaces) {
-                // Look for TUN interfaces (VPN tunnels)
                 if (networkInterface.name.startsWith("tun")) {
                     val addresses = networkInterface.inetAddresses
                     while (addresses.hasMoreElements()) {
                         val addr = addresses.nextElement()
-                        // Return first non-loopback IPv4 address
                         if (!addr.isLoopbackAddress && addr is java.net.Inet4Address) {
                             return addr.hostAddress
                         }
@@ -103,7 +99,6 @@ object VpnStateManager {
             }
             null
         } catch (_: Exception) {
-            // Return null on any error (permission issues, etc.)
             null
         }
     }

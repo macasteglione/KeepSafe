@@ -62,7 +62,6 @@ class NetworkMonitor(
                 network: Network,
                 capabilities: NetworkCapabilities
             ) {
-                // Check for WiFi or cellular transport (validation)
                 capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
                 capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
                 handleNetworkChange(network)
